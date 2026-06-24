@@ -55,6 +55,7 @@
       ]
     ],
     "extra": {
+      "buildNumber": 7,
       "eas": {
         "projectId": "b04eda9f-9b33-4353-92c1-177264fd8468"
       }

@@ -4,42 +4,33 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
-import Constants from 'expo-constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
+import { useAppUpdate } from '../hooks/useAppUpdate';
 import { RADIUS, FONT } from '../constants/theme';
 
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
   const { colors, isDark, setPreference } = useTheme();
   const { unreadCount } = useNotif();
+  const { updateAvailable, latestBuild, latestUrl, check, checking, CURRENT_BUILD } = useAppUpdate();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   const checkForUpdate = async () => {
     setCheckingUpdate(true);
-    try {
-      const res = await fetch('https://www.sahla4eco.com/api/mobile/download');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.download_url) {
-          Alert.alert('تحديث متاح', `الإصدار ${data.version || 'الأحدث'} متاح للتحميل. هل تريد التحميل الآن؟`, [
-            { text: 'لاحقاً', style: 'cancel' },
-            { text: 'تحميل', onPress: () => Linking.openURL(data.download_url) },
-          ]);
-        } else {
-          Alert.alert('أنت تستخدم أحدث إصدار');
-        }
-      } else {
-        Alert.alert('خطأ', 'تعذر التحقق من وجود تحديثات');
-      }
-    } catch {
-      Alert.alert('خطأ', 'تعذر الاتصال بالخادم');
-    } finally {
-      setCheckingUpdate(false);
+    const result = await check();
+    if (result.updateAvailable && result.latestUrl) {
+      Alert.alert('تحديث متاح', `الإصدار Build ${result.latestBuild} متاح للتحميل. الإصدار الحالي: Build ${CURRENT_BUILD}.`, [
+        { text: 'لاحقاً', style: 'cancel' },
+        { text: 'تحميل', onPress: () => Linking.openURL(result.latestUrl!) },
+      ]);
+    } else {
+      Alert.alert('أنت تستخدم أحدث إصدار', `الإصدار الحالي: Build ${CURRENT_BUILD}`);
     }
+    setCheckingUpdate(false);
   };
 
   const handleLogout = () => {
@@ -51,7 +42,24 @@ export function SettingsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScreenHeader title="المزيد" subtitle={user?.name || ''} />
+      <ScreenHeader title="المزيد" subtitle={user?.name || ''} rightAction={
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {updateAvailable && (
+            <TouchableOpacity style={[styles.updateBadge, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={checkForUpdate}>
+              <Ionicons name="refresh" size={16} color="#fff" />
+              <Text style={styles.updateBadgeDot}>1</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={[styles.notifBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={() => navigation.navigate('NotificationsTab')}>
+            <Ionicons name="notifications-outline" size={18} color="#fff" />
+            {unreadCount > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      } />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
@@ -142,7 +150,7 @@ export function SettingsScreen({ navigation }: any) {
               </View>
               <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الإصدار</Text>
-                <Text style={[styles.settingHint, { color: colors.textMuted }]}>{appVersion}</Text>
+                <Text style={[styles.settingHint, { color: colors.textMuted }]}>Build {CURRENT_BUILD}</Text>
               </View>
             </View>
             <Text style={[styles.settingValue, { color: colors.textMuted }]}>Sahla4Eco</Text>
@@ -188,6 +196,27 @@ const styles = StyleSheet.create({
   settingValue: { fontSize: FONT.sm, fontWeight: '500' },
   unreadBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   unreadText: { color: '#fff', fontSize: 9, fontWeight: '800' },
+  updateBadge: {
+    width: 32, height: 32, borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  updateBadgeDot: {
+    position: 'absolute', top: -2, right: -2,
+    minWidth: 14, height: 14, borderRadius: 7,
+    textAlign: 'center', fontSize: 7, fontWeight: '800', color: '#fff',
+    backgroundColor: '#ef4444', overflow: 'hidden', lineHeight: 14, paddingHorizontal: 2,
+  },
+  notifBtn: {
+    width: 32, height: 32, borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute', top: -2, right: -2,
+    minWidth: 14, height: 14, borderRadius: 7,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  badgeText: { color: '#fff', fontSize: 7, fontWeight: '800' },
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderRadius: RADIUS.lg, padding: 16, marginTop: 4,

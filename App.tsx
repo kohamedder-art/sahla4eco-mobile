@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, ActivityIndicator, StyleSheet, useColorScheme, Linking } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, useColorScheme, Linking, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -12,6 +12,7 @@ import { ErrorBoundary } from './src/components/ErrorBoundary';
 import type { ThemePreference } from './src/contexts/ThemeContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { useAppUpdate } from './src/hooks/useAppUpdate';
 import { FONT } from './src/constants/theme';
 import type { User } from './src/types';
 
@@ -20,6 +21,7 @@ const THEME_KEY = 'sahla_theme_pref';
 function RootNavigator() {
   const { isAuthenticated, isLoading, loginOAuthToken } = useAuth();
   const { colors } = useTheme();
+  const { updateAvailable, latestBuild, latestUrl, CURRENT_BUILD } = useAppUpdate();
 
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
@@ -40,6 +42,22 @@ function RootNavigator() {
       if (url) handleDeepLink({ url });
     });
   }, []);
+
+  useEffect(() => {
+    if (updateAvailable && latestUrl) {
+      const timer = setTimeout(() => {
+        Alert.alert(
+          'تحديث متاح',
+          `إصدار جديد (Build ${latestBuild}) متاح للتحميل. الإصدار الحالي: Build ${CURRENT_BUILD}.`,
+          [
+            { text: 'لاحقاً', style: 'cancel' },
+            { text: 'تحميل', onPress: () => Linking.openURL(latestUrl) },
+          ]
+        );
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [updateAvailable]);
 
   if (isLoading) {
     return (

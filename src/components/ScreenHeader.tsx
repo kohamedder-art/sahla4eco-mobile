@@ -26,7 +26,7 @@ export function ScreenHeader({ title, subtitle, onNotificationPress, rightAction
       <View style={styles.content}>
         <View style={styles.left}>
           <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="storefront" size={18} color="#fff" />
+            <Ionicons name="storefront" size={16} color="#fff" />
           </View>
           <View style={styles.textWrap}>
             <Text style={styles.title} numberOfLines={1}>{title}</Text>
@@ -35,7 +35,7 @@ export function ScreenHeader({ title, subtitle, onNotificationPress, rightAction
         </View>
         {rightAction ? rightAction : onNotificationPress && (
           <TouchableOpacity style={[styles.notifBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={onNotificationPress}>
-            <Ionicons name="notifications-outline" size={20} color="#fff" />
+            <Ionicons name="notifications-outline" size={18} color="#fff" />
             {unreadCount > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.danger }]}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -50,8 +50,8 @@ export function ScreenHeader({ title, subtitle, onNotificationPress, rightAction
 
 const styles = StyleSheet.create({
   wrapper: {
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
     overflow: 'hidden',
   },
   bgGradient: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 8,
   },
   left: {
     flexDirection: 'row',
@@ -76,33 +76,33 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 8,
   },
   textWrap: { flex: 1 },
   title: {
-    fontSize: FONT.lg,
+    fontSize: FONT.md,
     fontWeight: '800',
     color: '#fff',
   },
   subtitle: {
-    fontSize: FONT.xs,
+    fontSize: 10,
     color: 'rgba(255,255,255,0.65)',
     marginTop: 1,
   },
   notifBtn: {
-    width: 36, height: 36, borderRadius: 10,
+    width: 28, height: 28, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
   },
   badge: {
-    position: 'absolute', top: -3, right: -3,
-    minWidth: 16, height: 16, borderRadius: 8,
+    position: 'absolute', top: -2, right: -2,
+    minWidth: 14, height: 14, borderRadius: 7,
     alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: 2,
   },
-  badgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
+  badgeText: { color: '#fff', fontSize: 7, fontWeight: '800' },
 });
