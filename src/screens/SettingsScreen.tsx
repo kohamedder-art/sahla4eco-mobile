@@ -42,8 +42,8 @@ export function SettingsScreen({ navigation }: any) {
       } else {
         Alert.alert('أنت تستخدم أحدث إصدار');
       }
-    } catch {
-      Alert.alert('خطأ', 'تعذر التحقق من التحديثات');
+    } catch (e: any) {
+      Alert.alert('خطأ', e?.message || 'تعذر التحقق من التحديثات');
     } finally {
       setCheckingUpdate(false);
     }
