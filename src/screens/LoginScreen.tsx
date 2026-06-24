@@ -18,16 +18,15 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView,
-  Platform, ActivityIndicator, Alert, Animated, ScrollView, Linking,
+  Platform, ActivityIndicator, Alert, Animated, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useColors } from '../contexts/ThemeContext';
 import { RADIUS, FONT } from '../constants/theme';
-import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from '../constants/api';
 
-WebBrowser.maybeCompleteAuthSession();
+const GOOGLE_OAUTH_URL = 'https://www.sahla4eco.com/api/oauth/google/url?client=mobile';
 
 export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   const { login, savedAccounts, removeAccount, silentLogin } = useAuth();
@@ -89,20 +88,9 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   };
 
   const handleGoogle = async () => {
-    if (GOOGLE_WEB_CLIENT_ID.includes('PLACEHOLDER')) {
-      Alert.alert('غير مُهيّأ', 'تسجيل الدخول عبر Google لم يُضبط بعد على هذا البناء');
-      return;
-    }
     setGoogleLoading(true);
     try {
-      const resp = await fetch(`${API_BASE_URL}/api/oauth/google/url?client=mobile`);
-      const data = await resp.json();
-      if (!data.url) {
-        Alert.alert('خطأ', 'تعذر الحصول على رابط تسجيل الدخول');
-        setGoogleLoading(false);
-        return;
-      }
-      await Linking.openURL(data.url);
+      await WebBrowser.openAuthSessionAsync(GOOGLE_OAUTH_URL, 'sahla4eco://');
     } catch (e: any) {
       Alert.alert('خطأ', e?.message || 'تعذر فتح شاشة Google');
     } finally {
@@ -210,45 +198,31 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
               )}
             </TouchableOpacity>
 
-            <View style={styles.divider}>
+            <View style={[styles.divider, { marginTop: 20 }]}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
               <Text style={[styles.dividerText, { color: colors.textMuted }]}>أو</Text>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
             <TouchableOpacity
-              style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+              style={[styles.googleButton, { borderColor: colors.border }]}
               onPress={handleGoogle}
               disabled={googleLoading}
             >
               {googleLoading ? (
-                <ActivityIndicator color="#1f2937" />
+                <ActivityIndicator color={colors.text} />
               ) : (
                 <View style={styles.buttonInner}>
-                  <GoogleMark />
-                  <Text style={styles.googleButtonText}>تسجيل الدخول عبر Google</Text>
+                  <Ionicons name="logo-google" size={18} color={colors.text} />
+                  <Text style={[styles.googleButtonText, { color: colors.text }]}>Google</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            {onSwitchToQR && (
-              <TouchableOpacity style={[styles.qrButton, { borderColor: colors.border }]} onPress={onSwitchToQR}>
-                <Ionicons name="qr-code-outline" size={18} color={colors.primary} />
-                <Text style={[styles.qrButtonText, { color: colors.primary }]}>مسح رمز QR</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <View style={styles.gMark}>
-      <Text style={styles.gMarkText}>G</Text>
-    </View>
   );
 }
 
@@ -285,19 +259,10 @@ const styles = StyleSheet.create({
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: 12, fontSize: FONT.sm },
   googleButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#fff', borderWidth: 1, borderColor: '#dadce0',
-    borderRadius: RADIUS.md, padding: 13, gap: 8,
+    borderRadius: RADIUS.md,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
   },
-  googleButtonText: { color: '#1f2937', fontSize: FONT.md, fontWeight: '600' },
-  gMark: {
-    width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#fff', borderWidth: 1, borderColor: '#dadce0',
-  },
-  gMarkText: { fontSize: 12, fontWeight: '800', color: '#4285F4' },
-  qrButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    padding: 12, borderRadius: RADIUS.md, borderWidth: 1, borderStyle: 'dashed',
-  },
-  qrButtonText: { fontSize: FONT.md, fontWeight: '700' },
+  googleButtonText: { fontSize: FONT.md, fontWeight: '700' },
 });

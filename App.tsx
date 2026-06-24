@@ -12,7 +12,6 @@ import { ThemeContext, useTheme, LIGHT_COLORS, DARK_COLORS } from './src/context
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import type { ThemePreference } from './src/contexts/ThemeContext';
 import { LoginScreen } from './src/screens/LoginScreen';
-import { QRLoginScreen } from './src/screens/QRLoginScreen';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { FONT } from './src/constants/theme';
 import type { User } from './src/types';
@@ -22,7 +21,6 @@ const THEME_KEY = 'sahla_theme_pref';
 function RootNavigator() {
   const { isAuthenticated, isLoading, loginOAuthToken } = useAuth();
   const { colors } = useTheme();
-  const [authScreen, setAuthScreen] = useState<'email' | 'qr'>('email');
 
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
@@ -59,11 +57,7 @@ function RootNavigator() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-        {authScreen === 'email' ? (
-          <LoginScreen onSwitchToQR={() => setAuthScreen('qr')} />
-        ) : (
-          <QRLoginScreen onSwitchToEmail={() => setAuthScreen('email')} />
-        )}
+        <LoginScreen />
       </SafeAreaView>
     );
   }

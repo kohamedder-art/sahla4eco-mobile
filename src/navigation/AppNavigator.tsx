@@ -136,7 +136,7 @@ export function AppNavigator() {
         name="SettingsTab"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'الإعدادات',
+          tabBarLabel: 'المزيد',
           tabBarIcon: ({ focused, color }) => <TabIcon name={focused ? 'settings' : 'settings-outline'} focused={focused} color={color} />,
         }}
       />

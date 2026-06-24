@@ -1,12 +1,3 @@
-/**
- * AGENT INSTRUCTIONS — SETTINGS SCREEN
- * ----------------------------------------------------------------------------
- * Keep settings MINIMAL. Only essential toggles: notifications, theme,
- * check for update, version, logout, and (future) Gmail login. Do not
- * add subscription management, team management, API keys — that belongs
- * in the platform.
- * ----------------------------------------------------------------------------
- */
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, ActivityIndicator,
@@ -22,9 +13,9 @@ import { RADIUS, FONT } from '../constants/theme';
 
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
-  const { colors, isDark, preference, setPreference } = useTheme();
+  const { colors, isDark, setPreference } = useTheme();
   const insets = useSafeAreaInsets();
-  const { unreadCount, markAllRead } = useNotif();
+  const { unreadCount } = useNotif();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
@@ -67,13 +58,11 @@ export function SettingsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>الإعدادات</Text>
+        <Text style={styles.headerTitle}>المزيد</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Profile Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
           <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
             <Text style={[styles.avatarText, { color: colors.primary }]}>
@@ -83,78 +72,45 @@ export function SettingsScreen({ navigation }: any) {
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name || 'المالك'}</Text>
             <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email || ''}</Text>
-          </View>
-        </View>
-
-        {/* Store Card */}
-        {user?.store_name && (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="storefront-outline" size={15} color={colors.textMuted} />
-              <Text style={[styles.cardTitle, { color: colors.textMuted }]}>المتجر</Text>
-            </View>
-            <View style={styles.row}>
-              <Ionicons name="pricetag-outline" size={15} color={colors.textSecondary} />
-              <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>الاسم</Text>
-              <Text style={[styles.rowValue, { color: colors.text }]}>{user.store_name}</Text>
-            </View>
-            {user?.store_slug && (
-              <View style={styles.row}>
-                <Ionicons name="link-outline" size={15} color={colors.textSecondary} />
-                <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>الرابط</Text>
-                <Text style={[styles.rowValue, { color: colors.primary }]}>sahla4eco.com/{user.store_slug}</Text>
+            {user?.store_name && (
+              <View style={styles.storeRow}>
+                <Ionicons name="storefront-outline" size={12} color={colors.textMuted} />
+                <Text style={[styles.storeName, { color: colors.textMuted }]}>{user.store_name}</Text>
               </View>
             )}
           </View>
-        )}
-
-        {/* Notifications */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="notifications-outline" size={15} color={colors.textMuted} />
-            <Text style={[styles.cardTitle, { color: colors.textMuted }]}>الإشعارات</Text>
-          </View>
-          <View style={styles.settingRow}>
-            <View style={styles.settingLeft}>
-              <Ionicons name="mail-unread-outline" size={17} color={colors.text} />
-              <View style={styles.settingInfo}>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>غير مقروءة</Text>
-                <Text style={[styles.settingHint, { color: colors.textMuted }]}>
-                  {unreadCount} إشعار غير مقروء
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.smallBtn, { backgroundColor: colors.primaryLight }]}
-              onPress={() => navigation.navigate('NotificationsTab')}
-            >
-              <Text style={[styles.smallBtnText, { color: colors.primary }]}>عرض</Text>
-            </TouchableOpacity>
-          </View>
-          {unreadCount > 0 && (
-            <TouchableOpacity
-              style={[styles.markReadBtn, { borderColor: colors.border }]}
-              onPress={() => markAllRead().catch(() => {})}
-            >
-              <Ionicons name="checkmark-done-outline" size={14} color={colors.primary} />
-              <Text style={[styles.markReadText, { color: colors.primary }]}>تحديد الكل كمقروء</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
-        {/* Appearance */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="color-palette-outline" size={15} color={colors.textMuted} />
-            <Text style={[styles.cardTitle, { color: colors.textMuted }]}>المظهر</Text>
-          </View>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: colors.border }]}
+            onPress={() => navigation.navigate('NotificationsTab')}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="notifications-outline" size={16} color={colors.primary} />
+              </View>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>الإشعارات</Text>
+            </View>
+            <View style={styles.settingRight}>
+              {unreadCount > 0 && (
+                <View style={[styles.unreadBadge, { backgroundColor: colors.danger }]}>
+                  <Text style={styles.unreadText}>{unreadCount}</Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </View>
+          </TouchableOpacity>
+
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name={isDark ? 'moon' : 'sunny'} size={17} color={colors.text} />
-              <View style={styles.settingInfo}>
+              <View style={[styles.iconBox, { backgroundColor: colors.warningLight }]}>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={16} color={colors.warning} />
+              </View>
+              <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الوضع الداكن</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>
-                  {preference === 'system' ? 'يتبع إعدادات الجهاز' : isDark ? 'مفعّل' : 'معطّل'}
+                  {isDark ? 'مفعّل' : 'معطّل'}
                 </Text>
               </View>
             </View>
@@ -167,41 +123,41 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* App Info */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />
-            <Text style={[styles.cardTitle, { color: colors.textMuted }]}>عن التطبيق</Text>
-          </View>
-          <View style={styles.row}>
-            <Ionicons name="phone-portrait-outline" size={15} color={colors.textSecondary} />
-            <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>الإصدار</Text>
-            <Text style={[styles.rowValue, { color: colors.text }]}>{appVersion}</Text>
-          </View>
-          <View style={styles.row}>
-            <Ionicons name="cube-outline" size={15} color={colors.textSecondary} />
-            <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>المنصة</Text>
-            <Text style={[styles.rowValue, { color: colors.text }]}>Sahla4Eco</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: colors.border }]}
+            onPress={checkForUpdate}
+            disabled={checkingUpdate}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconBox, { backgroundColor: colors.infoLight }]}>
+                <Ionicons name="refresh-outline" size={16} color={colors.info} />
+              </View>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>التحقق من التحديثات</Text>
+            </View>
+            <View style={styles.settingRight}>
+              {checkingUpdate ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconBox, { backgroundColor: colors.successLight }]}>
+                <Ionicons name="phone-portrait-outline" size={16} color={colors.success} />
+              </View>
+              <View>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>الإصدار</Text>
+                <Text style={[styles.settingHint, { color: colors.textMuted }]}>{appVersion}</Text>
+              </View>
+            </View>
+            <Text style={[styles.settingValue, { color: colors.textMuted }]}>Sahla4Eco</Text>
           </View>
         </View>
 
-        {/* Check for Updates */}
-        <TouchableOpacity
-          style={[styles.updateBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={checkForUpdate}
-          disabled={checkingUpdate}
-        >
-          {checkingUpdate ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Ionicons name="refresh-outline" size={17} color={colors.primary} />
-          )}
-          <Text style={[styles.updateBtnText, { color: colors.primary }]}>
-            {checkingUpdate ? 'جاري التحقق...' : 'التحقق من التحديثات'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Logout */}
         <TouchableOpacity
           style={[styles.logoutBtn, { backgroundColor: colors.danger }]}
           onPress={handleLogout}
@@ -220,36 +176,32 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 40 },
   profileCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    borderRadius: RADIUS.lg, padding: 16, marginBottom: 10,
+    borderRadius: RADIUS.lg, padding: 16, marginBottom: 14,
   },
   avatar: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: FONT.lg, fontWeight: '800' },
   profileInfo: { flex: 1 },
   profileName: { fontSize: FONT.lg, fontWeight: '700' },
   profileEmail: { fontSize: FONT.sm, marginTop: 1 },
-  card: { borderRadius: RADIUS.lg, padding: 16, marginBottom: 10 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  cardTitle: { fontSize: FONT.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  rowLabel: { fontSize: FONT.sm, flex: 1 },
-  rowValue: { fontSize: FONT.sm, fontWeight: '600', textAlign: 'left' },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  settingInfo: { flex: 1 },
+  storeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+  storeName: { fontSize: FONT.xs },
+  section: { borderRadius: RADIUS.lg, marginBottom: 14, overflow: 'hidden' },
+  settingRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  iconBox: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   settingLabel: { fontSize: FONT.md, fontWeight: '600' },
   settingHint: { fontSize: FONT.xs, marginTop: 1 },
-  smallBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.sm },
-  smallBtnText: { fontSize: FONT.xs, fontWeight: '700' },
-  markReadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 8, marginTop: 8, borderRadius: RADIUS.sm, borderWidth: 1 },
-  markReadText: { fontSize: FONT.xs, fontWeight: '600' },
+  settingValue: { fontSize: FONT.sm, fontWeight: '500' },
+  unreadBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  unreadText: { color: '#fff', fontSize: 9, fontWeight: '800' },
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderRadius: RADIUS.lg, padding: 16, marginTop: 4,
   },
   logoutText: { color: '#fff', fontSize: FONT.lg, fontWeight: '700' },
-  updateBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderRadius: RADIUS.lg, padding: 14, marginTop: 4, borderWidth: 1,
-  },
-  updateBtnText: { fontSize: FONT.md, fontWeight: '600' },
 });

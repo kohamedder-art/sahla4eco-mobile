@@ -1,41 +1,24 @@
-/**
- * AGENT INSTRUCTIONS — ORDERS SCREEN
- * ----------------------------------------------------------------------------
- * This is the store owner's primary work surface. Keep it BASIC:
- *   - See incoming orders fast
- *   - Filter by status (the only filters you need)
- *   - Tap an order to confirm/cancel/call the customer
- *
- * Do NOT add analytics charts, marketing widgets, or product management —
- * those belong in the platform, not the mobile app.
- *
- * Header must use primary color extending into the status bar
- * (paddingTop = insets.top + 12). White text and icons.
- * ----------------------------------------------------------------------------
- */
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
-  ActivityIndicator, Alert, TextInput,
+  ActivityIndicator, TextInput, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { OrderRow } from '../components/OrderRow';
 import { useColors } from '../contexts/ThemeContext';
 import { RADIUS, FONT } from '../constants/theme';
-import { getStatusLabel } from '../utils/format';
+import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 import type { MobileOrder } from '../types';
 
-const FILTERS = ['all', 'pending', 'confirmed', 'shipped', 'in_delivery', 'delivered', 'cancelled'];
+const FILTERS = ['all', 'pending', 'confirmed', 'delivered', 'cancelled'];
 
 const FILTER_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   all: 'grid-outline',
   pending: 'time-outline',
   confirmed: 'checkmark-circle-outline',
-  shipped: 'car-outline',
   delivered: 'bag-check-outline',
   cancelled: 'close-circle-outline',
 };
@@ -85,7 +68,7 @@ export function OrdersScreen({ navigation, route }: any) {
     fetchOrders(f);
   };
 
-  const updateStatus = async (order: MobileOrder, status: string) => {
+  const quickConfirm = async (order: MobileOrder) => {
     setUpdatingId(order.id);
     try {
       const baseUrl = API_BASE_URL;
@@ -93,7 +76,7 @@ export function OrdersScreen({ navigation, route }: any) {
       const res = await fetch(`${baseUrl}/api/mobile/orders/${order.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: 'confirmed' }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'فشل التحديث' }));
@@ -108,15 +91,6 @@ export function OrdersScreen({ navigation, route }: any) {
     }
   };
 
-  const handleConfirm = (order: MobileOrder) => updateStatus(order, 'confirmed');
-
-  const handleCancel = (order: MobileOrder) => {
-    Alert.alert('إلغاء الطلب', `هل أنت متأكد من إلغاء طلب ${order.customer_name}؟`, [
-      { text: 'تراجع', style: 'cancel' },
-      { text: 'إلغاء', style: 'destructive', onPress: () => updateStatus(order, 'cancelled') },
-    ]);
-  };
-
   const filteredOrders = useMemo(() => {
     if (!search.trim()) return orders;
     const q = search.trim().toLowerCase();
@@ -127,6 +101,13 @@ export function OrdersScreen({ navigation, route }: any) {
       (o.customer_phone || '').includes(q)
     );
   }, [orders, search]);
+
+  const getStatusColor = (status: string) => {
+    if (status === 'delivered' || status === 'confirmed') return colors.success;
+    if (status === 'cancelled' || status === 'returned' || status === 'fake') return colors.danger;
+    if (status === 'pending') return colors.warning;
+    return colors.primary;
+  };
 
   if (loading) {
     return (
@@ -150,21 +131,22 @@ export function OrdersScreen({ navigation, route }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Inline header */}
-      <View style={[styles.inlineHeader, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <Text style={[styles.inlineTitle, { color: '#fff' }]}>الطلبات</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Tracking')}>
-          <Ionicons name="car-outline" size={22} color="#fff" />
-        </TouchableOpacity>
+      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
+        <Text style={styles.headerTitle}>الطلبات</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('Tracking')}>
+            <Ionicons name="car-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
-      {/* Search Bar */}
+
       <View style={[styles.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Ionicons name="search-outline" size={16} color={colors.textMuted} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
           value={search}
           onChangeText={setSearch}
-          placeholder="بحث باسم العميل، المنتج، رقم الطلب..."
+          placeholder="بحث باسم العميل أو رقم الطلب"
           placeholderTextColor={colors.textMuted}
         />
         {search.length > 0 && (
@@ -174,7 +156,6 @@ export function OrdersScreen({ navigation, route }: any) {
         )}
       </View>
 
-      {/* Filters */}
       <View style={styles.filters}>
         <FlatList
           horizontal
@@ -184,32 +165,33 @@ export function OrdersScreen({ navigation, route }: any) {
           contentContainerStyle={styles.filterList}
           renderItem={({ item: f }) => {
             const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
+            const active = activeFilter === f;
             return (
               <TouchableOpacity
                 style={[
                   styles.chip,
                   { backgroundColor: colors.card, borderColor: colors.border },
-                  activeFilter === f && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  active && { backgroundColor: colors.primary, borderColor: colors.primary },
                 ]}
                 onPress={() => handleFilter(f)}
               >
                 <Ionicons
                   name={FILTER_ICONS[f] || 'ellipse-outline'}
                   size={12}
-                  color={activeFilter === f ? '#fff' : colors.textSecondary}
+                  color={active ? '#fff' : colors.textSecondary}
                 />
                 <Text
                   style={[
                     styles.chipText,
                     { color: colors.textSecondary },
-                    activeFilter === f && { color: '#fff' },
+                    active && { color: '#fff' },
                   ]}
                 >
                   {getStatusLabel(f === 'all' ? 'الكل' : f)}
                 </Text>
                 {count > 0 && (
-                  <View style={[styles.chipCount, { backgroundColor: activeFilter === f ? 'rgba(255,255,255,0.2)' : colors.border }]}>
-                    <Text style={[styles.chipCountText, { color: activeFilter === f ? '#fff' : colors.textMuted }]}>{count}</Text>
+                  <View style={[styles.chipCount, { backgroundColor: active ? 'rgba(255,255,255,0.2)' : colors.border }]}>
+                    <Text style={[styles.chipCountText, { color: active ? '#fff' : colors.textMuted }]}>{count}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -218,7 +200,6 @@ export function OrdersScreen({ navigation, route }: any) {
         />
       </View>
 
-      {/* Orders list */}
       <FlatList
         data={filteredOrders}
         keyExtractor={(o) => String(o.id)}
@@ -226,15 +207,67 @@ export function OrdersScreen({ navigation, route }: any) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchOrders(activeFilter); }} tintColor={colors.primary} />
         }
-        renderItem={({ item }) => (
-          <OrderRow
-            order={item}
-            onPress={() => navigation.navigate('OrderDetail', { id: item.id })}
-            onConfirm={item.status === 'pending' ? () => handleConfirm(item) : undefined}
-            onCancel={item.status === 'pending' || item.status === 'confirmed' ? () => handleCancel(item) : undefined}
-            updating={updatingId === item.id}
-          />
-        )}
+        renderItem={({ item }) => {
+          const sc = getStatusColor(item.status);
+          return (
+            <TouchableOpacity
+              style={[styles.orderCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('OrderDetail', { id: item.id })}
+              activeOpacity={0.7}
+            >
+              <View style={styles.orderLeft}>
+                <View style={[styles.avatar, { backgroundColor: sc + '15' }]}>
+                  <Text style={[styles.avatarText, { color: sc }]}>
+                    {item.customer_name?.charAt(0) || '?'}
+                  </Text>
+                </View>
+                <View style={styles.orderInfo}>
+                  <Text style={[styles.customerName, { color: colors.text }]} numberOfLines={1}>
+                    {item.customer_name}
+                  </Text>
+                  <Text style={[styles.productName, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {item.product_title}
+                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                      {formatTimeAgo(item.created_at)}
+                    </Text>
+                    {item.order_source_label && (
+                      <>
+                        <Text style={[styles.metaSep, { color: colors.border }]}>|</Text>
+                        <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                          {item.order_source_label}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                </View>
+              </View>
+              <View style={styles.orderRight}>
+                <Text style={[styles.price, { color: colors.text }]}>
+                  {formatCurrency(item.total_price)}
+                </Text>
+                <View style={[styles.statusBadge, { backgroundColor: sc + '12' }]}>
+                  <View style={[styles.dot, { backgroundColor: sc }]} />
+                  <Text style={[styles.statusText, { color: sc }]}>{getStatusLabel(item.status)}</Text>
+                </View>
+              </View>
+              {item.status === 'pending' && (
+                <TouchableOpacity
+                  style={[styles.confirmBtn, { backgroundColor: colors.success }]}
+                  onPress={() => quickConfirm(item)}
+                  disabled={updatingId === item.id}
+                >
+                  {updatingId === item.id ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Ionicons name="checkmark" size={16} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <View style={[styles.emptyIconWrap, { backgroundColor: colors.primaryLight }]}>
@@ -256,18 +289,20 @@ export function OrdersScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  inlineHeader: {
+  header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 4, paddingBottom: 6,
+    paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8,
+    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
   },
-  inlineTitle: { fontSize: FONT.lg, fontWeight: '800' },
+  headerTitle: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginHorizontal: 16, marginTop: 8, marginBottom: 4,
+    marginHorizontal: 16, marginTop: 10, marginBottom: 4,
     paddingHorizontal: 12, height: 40, borderRadius: RADIUS.md, borderWidth: 1,
   },
   searchInput: { flex: 1, paddingVertical: 0, fontSize: FONT.sm },
-  filters: { paddingTop: 6 },
+  filters: { paddingTop: 8 },
   filterList: { paddingHorizontal: 16, gap: 6 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
@@ -277,6 +312,29 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 10, fontWeight: '600' },
   chipCount: { minWidth: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   chipCountText: { fontSize: 8, fontWeight: '700' },
+  orderCard: {
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 16, marginBottom: 8,
+    padding: 12, borderRadius: RADIUS.lg, gap: 10,
+  },
+  orderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
+  avatar: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: FONT.md, fontWeight: '800' },
+  orderInfo: { flex: 1 },
+  customerName: { fontSize: FONT.md, fontWeight: '700' },
+  productName: { fontSize: FONT.xs, marginTop: 1 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+  metaText: { fontSize: 10 },
+  metaSep: { fontSize: 10 },
+  orderRight: { alignItems: 'flex-end', gap: 4 },
+  price: { fontSize: FONT.md, fontWeight: '700' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: RADIUS.full },
+  dot: { width: 5, height: 5, borderRadius: 2.5 },
+  statusText: { fontSize: 9, fontWeight: '600' },
+  confirmBtn: {
+    width: 32, height: 32, borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+  },
   emptyState: { alignItems: 'center', paddingVertical: 60 },
   emptyIconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   emptyText: { fontSize: FONT.md, fontWeight: '700' },
