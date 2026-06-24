@@ -1,41 +1,36 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
-import { RADIUS, FONT } from '../constants/theme';
+import { FONT } from '../constants/theme';
 
 interface Props {
   title: string;
   subtitle?: string;
+  onBackPress?: () => void;
   onNotificationPress?: () => void;
   rightAction?: React.ReactNode;
 }
 
-export function ScreenHeader({ title, subtitle, onNotificationPress, rightAction }: Props) {
+export function ScreenHeader({ title, subtitle, onBackPress, onNotificationPress, rightAction }: Props) {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { unreadCount } = useNotif();
 
   return (
-    <View style={[styles.wrapper, { paddingTop: insets.top, backgroundColor: colors.primaryDark }]}>
-      <View style={[styles.bgGradient, { backgroundColor: colors.primary }]}>
-        <View style={[styles.gradientOverlay, { backgroundColor: colors.gradientEnd + '25' }]} />
-      </View>
-      <View style={styles.content}>
-        <View style={styles.left}>
-          <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="storefront" size={16} color="#fff" />
-          </View>
-          <View style={styles.textWrap}>
-            <Text style={styles.title} numberOfLines={1}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
-          </View>
-        </View>
+    <View style={[styles.bar, { backgroundColor: colors.primary }]}>
+      <View style={styles.row}>
+        {onBackPress && (
+          <TouchableOpacity onPress={onBackPress} style={styles.backBtn}>
+            <Ionicons name="arrow-forward" size={22} color="#fff" />
+          </TouchableOpacity>
+        )}
+        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+        <View style={{ flex: 1 }} />
         {rightAction ? rightAction : onNotificationPress && (
           <TouchableOpacity style={[styles.notifBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={onNotificationPress}>
-            <Ionicons name="notifications-outline" size={18} color="#fff" />
+            <Ionicons name="notifications-outline" size={20} color="#fff" />
             {unreadCount > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.danger }]}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -49,60 +44,50 @@ export function ScreenHeader({ title, subtitle, onNotificationPress, rightAction
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  bar: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
-    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  bgGradient: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-  },
-  gradientOverlay: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-  },
-  content: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
   },
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 12,
-  },
-  iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  textWrap: { flex: 1 },
   title: {
-    fontSize: FONT.md,
+    fontSize: FONT.lg,
     fontWeight: '800',
     color: '#fff',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: FONT.xs,
     color: 'rgba(255,255,255,0.65)',
-    marginTop: 1,
+    marginLeft: 8,
+  },
+  backBtn: {
+    paddingRight: 8,
+    paddingVertical: 4,
   },
   notifBtn: {
-    width: 28, height: 28, borderRadius: 8,
+    width: 32, height: 32, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
   },
   badge: {
-    position: 'absolute', top: -2, right: -2,
-    minWidth: 14, height: 14, borderRadius: 7,
+    position: 'absolute', top: -3, right: -3,
+    minWidth: 16, height: 16, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 2,
+    paddingHorizontal: 3,
   },
-  badgeText: { color: '#fff', fontSize: 7, fontWeight: '800' },
+  badgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
 });

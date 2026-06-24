@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useAppUpdate } from '../hooks/useAppUpdate';
+import Constants from 'expo-constants';
 import { RADIUS, FONT } from '../constants/theme';
 
 export function SettingsScreen({ navigation }: any) {
@@ -42,7 +43,7 @@ export function SettingsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScreenHeader title="المزيد" subtitle={user?.name || ''} rightAction={
+      <ScreenHeader title="المزيد" rightAction={
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {updateAvailable && (
             <TouchableOpacity style={[styles.updateBadge, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={checkForUpdate}>
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
   unreadBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   unreadText: { color: '#fff', fontSize: 9, fontWeight: '800' },
   updateBadge: {
-    width: 32, height: 32, borderRadius: 8,
+    width: 32, height: 32, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
   },
   updateBadgeDot: {
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444', overflow: 'hidden', lineHeight: 14, paddingHorizontal: 2,
   },
   notifBtn: {
-    width: 32, height: 32, borderRadius: 8,
+    width: 32, height: 32, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
   },
   badge: {

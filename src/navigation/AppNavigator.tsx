@@ -39,27 +39,7 @@ function OrdersStackScreen() {
   return (
     <OrdersStack.Navigator screenOptions={{ headerShown: false }}>
       <OrdersStack.Screen name="Orders" component={OrdersScreen} />
-      <OrdersStack.Screen
-        name="OrderDetail"
-        component={OrderDetailScreen}
-        options={({ navigation: nav }) => ({
-          title: 'تفاصيل الطلب',
-          headerShown: true,
-          headerBackTitle: 'رجوع',
-          headerStyle: { backgroundColor: colors.primary },
-          headerTintColor: '#fff',
-          headerTitleStyle: { color: '#fff', fontWeight: '700' },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => { if (nav.canGoBack()) nav.goBack(); else nav.navigate('Orders'); }}
-              style={{ paddingLeft: 4, paddingRight: 12 }}
-            >
-              <Ionicons name="arrow-forward" size={22} color="#fff" />
-            </TouchableOpacity>
-          ),
-        })}
-      />
+      <OrdersStack.Screen name="OrderDetail" component={OrderDetailScreen} />
       <OrdersStack.Screen name="Tracking" component={TrackingScreen} />
     </OrdersStack.Navigator>
   );

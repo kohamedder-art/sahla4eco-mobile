@@ -5,10 +5,8 @@
  * for one specific order. Do not add cross-sell, upsell, marketing prompts,
  * or product editing — that belongs to the platform.
  *
- * The native stack header MUST use primary color background with white
- * text/icons so it extends into the status bar. A back arrow is REQUIRED
- * even when this is the first screen in the stack — it is configured in
- * AppNavigator.tsx with a custom headerLeft.
+ * Uses the custom ScreenHeader with a back arrow. The header is fixed at the
+ * top while order content scrolls below it.
  * ----------------------------------------------------------------------------
  */
 import React, { useState, useEffect } from 'react';
@@ -17,6 +15,7 @@ import {
   Linking, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
 import { RADIUS, FONT } from '../constants/theme';
@@ -84,22 +83,6 @@ export function OrderDetailScreen({ navigation, route }: any) {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
-  if (!order) {
-    return (
-      <View style={[styles.centered, { backgroundColor: colors.background }]}>
-        <Text style={{ fontSize: FONT.lg, color: colors.textSecondary }}>الطلب غير موجود</Text>
-      </View>
-    );
-  }
-
   const statusColor =
     order.status === 'delivered' || order.status === 'confirmed' ? colors.success :
     order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? colors.danger :
@@ -117,7 +100,21 @@ export function OrderDetailScreen({ navigation, route }: any) {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScreenHeader
+        title="تفاصيل الطلب"
+        onBackPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Orders'); }}
+      />
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : !order ? (
+        <View style={styles.centered}>
+          <Text style={{ fontSize: FONT.lg, color: colors.textSecondary }}>الطلب غير موجود</Text>
+        </View>
+      ) : (
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Status Banner */}
       <View style={[styles.statusBanner, { backgroundColor: statusColor }]}>
         <Ionicons
@@ -271,7 +268,9 @@ export function OrderDetailScreen({ navigation, route }: any) {
           <Text style={styles.contactLabel}>اتصال</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+      )}
+    </View>
   );
 }
 
