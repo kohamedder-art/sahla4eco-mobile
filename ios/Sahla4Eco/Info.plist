@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>sahla4eco</string>
           <string>com.sahla4eco.mobile</string>
         </array>
       </dict>
@@ -45,7 +46,7 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Scan QR code to log in to your store dashboard.</string>
+    <string>Allow Sahla4Eco to access your camera to scan QR codes for login.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Unlock the app with Face ID for quick access.</string>
     <key>NSMicrophoneUsageDescription</key>
