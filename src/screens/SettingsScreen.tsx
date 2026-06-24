@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../components/ScreenHeader';
 import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +14,6 @@ import { RADIUS, FONT } from '../constants/theme';
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
   const { colors, isDark, setPreference } = useTheme();
-  const insets = useSafeAreaInsets();
   const { unreadCount } = useNotif();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
@@ -58,9 +57,7 @@ export function SettingsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>المزيد</Text>
-      </View>
+      <ScreenHeader title="المزيد" subtitle={user?.name || ''} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
@@ -171,8 +168,6 @@ export function SettingsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 16, paddingVertical: 10, borderBottomLeftRadius: 16, borderBottomRightRadius: 16 },
-  headerTitle: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
   content: { padding: 16, paddingBottom: 40 },
   profileCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,

@@ -3,12 +3,11 @@ import {
   View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
-import { useNotif } from '../hooks/usePushNotifications';
 import { RADIUS, FONT } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
@@ -16,8 +15,6 @@ import { API_BASE_URL } from '../constants/api';
 export function DashboardScreen({ navigation }: any) {
   const { user, getAccessToken } = useAuth();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
-  const { unreadCount } = useNotif();
   const [stats, setStats] = useState<any>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,25 +64,11 @@ export function DashboardScreen({ navigation }: any) {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
       }
     >
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>مرحباً، {user?.name || 'المالك'}</Text>
-            <Text style={styles.storeName}>Sahla4Eco</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.notifBtn}
-            onPress={() => navigation.navigate('NotificationsTab')}
-          >
-            <Ionicons name="notifications-outline" size={20} color="#fff" />
-            {unreadCount > 0 && (
-              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ScreenHeader
+        title={user?.name || 'المالك'}
+        subtitle="Sahla4Eco"
+        onNotificationPress={() => navigation.navigate('NotificationsTab')}
+      />
 
       <View style={styles.statsGrid}>
         <View style={[styles.statCard, { backgroundColor: colors.card }]}>
@@ -185,23 +168,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingBottom: 32 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingHorizontal: 16, paddingBottom: 16,
-    borderBottomLeftRadius: 18, borderBottomRightRadius: 18,
-  },
-  headerContent: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  headerLeft: { flex: 1 },
-  greeting: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
-  storeName: { fontSize: FONT.sm, color: 'rgba(255,255,255,0.7)', marginTop: 1 },
-  notifBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  badge: { position: 'absolute', top: -3, right: -3, minWidth: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  badgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
   statsGrid: {
     flexDirection: 'row', gap: 10,
     paddingHorizontal: 16, marginTop: -8,

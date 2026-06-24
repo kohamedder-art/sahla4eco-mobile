@@ -11,9 +11,9 @@ import React, { useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { RADIUS, FONT } from '../constants/theme';
@@ -22,7 +22,6 @@ import type { AppNotification } from '../types';
 
 export function NotificationsScreen({ navigation }: any) {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { notifications, unreadCount, refresh, markAllRead } = useNotif();
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
@@ -51,21 +50,21 @@ export function NotificationsScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>الإشعارات</Text>
-          {unreadCount > 0 && (
+      <ScreenHeader
+        title="الإشعارات"
+        subtitle={unreadCount > 0 ? `${unreadCount} غير مقروء` : undefined}
+        rightAction={
+          unreadCount > 0 ? (
             <TouchableOpacity
-              style={styles.markAllBtn}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.sm }}
               onPress={() => markAllRead().catch(() => {})}
             >
               <Ionicons name="checkmark-done-outline" size={14} color="#fff" />
-              <Text style={styles.markAllText}>تحديد الكل</Text>
+              <Text style={{ fontSize: FONT.xs, fontWeight: '600', color: '#fff' }}>تحديد الكل</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </View>
+          ) : undefined
+        }
+      />
 
       <FlatList
         data={notifications}
@@ -119,11 +118,6 @@ export function NotificationsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingHorizontal: 16, paddingVertical: 10, borderBottomLeftRadius: 16, borderBottomRightRadius: 16 },
-  headerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
-  markAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.sm },
-  markAllText: { fontSize: FONT.xs, fontWeight: '600', color: '#fff' },
   notifRow: {
     flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 6,
     padding: 12, borderRadius: RADIUS.lg, borderLeftWidth: 3, borderLeftColor: 'transparent',

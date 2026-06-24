@@ -3,9 +3,9 @@ import {
   View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
   ActivityIndicator, TextInput, Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
 import { RADIUS, FONT } from '../constants/theme';
@@ -26,7 +26,6 @@ const FILTER_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']
 export function OrdersScreen({ navigation, route }: any) {
   const { getAccessToken } = useAuth();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState<MobileOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -131,14 +130,18 @@ export function OrdersScreen({ navigation, route }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>الطلبات</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => navigation.navigate('Tracking')}>
+      <ScreenHeader
+        title="الطلبات"
+        subtitle={activeFilter !== 'all' ? `فلتر: ${activeFilter}` : undefined}
+        rightAction={
+          <TouchableOpacity
+            style={[styles.trackingBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
+            onPress={() => navigation.navigate('Tracking')}
+          >
             <Ionicons name="car-outline" size={20} color="#fff" />
           </TouchableOpacity>
-        </View>
-      </View>
+        }
+      />
 
       <View style={[styles.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Ionicons name="search-outline" size={16} color={colors.textMuted} />
@@ -289,13 +292,10 @@ export function OrdersScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8,
-    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+  trackingBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: 16, marginTop: 10, marginBottom: 4,
