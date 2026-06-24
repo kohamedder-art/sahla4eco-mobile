@@ -19,6 +19,7 @@
       "**/*"
     ],
     "ios": {
+      "buildNumber": "14",
       "supportsTablet": false,
       "bundleIdentifier": "com.sahla4eco.mobile",
       "infoPlist": {
@@ -27,6 +28,7 @@
       }
     },
     "android": {
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f172a"
@@ -40,6 +42,12 @@
         "USE_BIOMETRIC",
         "POST_NOTIFICATIONS"
       ]
+    },
+    "extra": {
+      "buildNumber": 14,
+      "eas": {
+        "projectId": "b04eda9f-9b33-4353-92c1-177264fd8468"
+      }
     },
     "plugins": [
       "expo-secure-store",
@@ -55,12 +63,6 @@
         }
       ]
     ],
-    "extra": {
-      "buildNumber": 9,
-      "eas": {
-        "projectId": "b04eda9f-9b33-4353-92c1-177264fd8468"
-      }
-    },
     "owner": "sahla4eco-organization",
     "runtimeVersion": "1.0.0"
   }

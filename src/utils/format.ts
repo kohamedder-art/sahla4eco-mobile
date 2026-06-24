@@ -1,10 +1,13 @@
 export function formatCurrency(amount: number, currency: string = 'DZD'): string {
+  if (amount == null || isNaN(amount)) return `0 ${currency}`;
   return `${Math.round(amount).toLocaleString('ar-DZ')} ${currency}`;
 }
 
-export function formatTimeAgo(dateStr: string): string {
+export function formatTimeAgo(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
   const now = Date.now();
   const date = new Date(dateStr).getTime();
+  if (isNaN(date)) return '';
   const diff = now - date;
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'الآن';
@@ -16,8 +19,11 @@ export function formatTimeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ar-DZ');
 }
 
-export function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('ar-DZ', {
+export function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ar-DZ', {
     weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }
