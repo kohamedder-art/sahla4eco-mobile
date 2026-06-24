@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, ActivityIndicator, StyleSheet, useColorScheme, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Updates from 'expo-updates';
 import * as SecureStore from 'expo-secure-store';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { NotifProvider } from './src/hooks/usePushNotifications';
@@ -88,18 +87,6 @@ export default function App() {
 
   const isDark = preference === 'system' ? systemScheme === 'dark' : preference === 'dark';
   const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          await Updates.reloadAsync();
-        }
-      } catch {}
-    })();
-  }, []);
 
   if (!loaded) return null;
 

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, ActivityIndicator, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
-import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -22,27 +21,22 @@ export function SettingsScreen({ navigation }: any) {
   const checkForUpdate = async () => {
     setCheckingUpdate(true);
     try {
-      const update = await Updates.checkForUpdateAsync();
-      if (update.isAvailable) {
-        Alert.alert('تحديث متاح', 'يوجد تحديث جديد. هل تريد تحميله الآن؟', [
-          { text: 'لاحقاً', style: 'cancel' },
-          {
-            text: 'تحديث',
-            onPress: async () => {
-              try {
-                await Updates.fetchUpdateAsync();
-                await Updates.reloadAsync();
-              } catch {
-                Alert.alert('خطأ', 'فشل تحميل التحديث');
-              }
-            },
-          },
-        ]);
+      const res = await fetch('https://www.sahla4eco.com/api/mobile/download');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.download_url) {
+          Alert.alert('تحديث متاح', `الإصدار ${data.version || 'الأحدث'} متاح للتحميل. هل تريد التحميل الآن؟`, [
+            { text: 'لاحقاً', style: 'cancel' },
+            { text: 'تحميل', onPress: () => Linking.openURL(data.download_url) },
+          ]);
+        } else {
+          Alert.alert('أنت تستخدم أحدث إصدار');
+        }
       } else {
-        Alert.alert('أنت تستخدم أحدث إصدار');
+        Alert.alert('خطأ', 'تعذر التحقق من وجود تحديثات');
       }
-    } catch (e: any) {
-      Alert.alert('خطأ', e?.message || 'تعذر التحقق من التحديثات');
+    } catch {
+      Alert.alert('خطأ', 'تعذر الاتصال بالخادم');
     } finally {
       setCheckingUpdate(false);
     }
