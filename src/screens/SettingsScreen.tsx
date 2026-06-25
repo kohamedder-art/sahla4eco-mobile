@@ -26,7 +26,7 @@ export function SettingsScreen({ navigation }: any) {
     if (result.updateAvailable && result.latestUrl) {
       Alert.alert('تحديث متاح', `الإصدار Build ${result.latestBuild} متاح للتحميل. الإصدار الحالي: Build ${CURRENT_BUILD}.`, [
         { text: 'لاحقاً', style: 'cancel' },
-        { text: 'تحميل', onPress: () => Linking.openURL(result.latestUrl!) },
+        { text: 'تحميل', onPress: () => Linking.openURL('https://www.sahla4eco.com/api/mobile/download/latest') },
       ]);
     } else {
       Alert.alert('أنت تستخدم أحدث إصدار', `الإصدار الحالي: Build ${CURRENT_BUILD}`);
