@@ -28,6 +28,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Sync build number into app.json
+        run: |
+          node -e "
+          const fs = require('fs');
+          const app = JSON.parse(fs.readFileSync('app.json','utf8'));
+          const n = parseInt('${{ github.run_number }}', 10) || 14;
+          app.expo.extra.buildNumber = n;
+          app.expo.ios.buildNumber = String(n);
+          app.expo.android.versionCode = n;
+          fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          console.log('buildNumber set to', n);
+          "
+
       - name: Regenerate native assets (icon, splash, etc.)
         run: npx expo prebuild --clean
 
