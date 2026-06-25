@@ -83,22 +83,6 @@ export function OrderDetailScreen({ navigation, route }: any) {
     }
   };
 
-  const statusColor =
-    order.status === 'delivered' || order.status === 'confirmed' ? colors.success :
-    order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? colors.danger :
-    order.status === 'pending' ? colors.warning : colors.primary;
-
-  const statusActions: { label: string; status: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [];
-  if (order.status === 'pending') {
-    statusActions.push({ label: 'تأكيد', status: 'confirmed', color: colors.success, icon: 'checkmark-circle-outline' });
-    statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
-  } else if (order.status === 'confirmed') {
-    statusActions.push({ label: 'شحن', status: 'shipped', color: colors.info, icon: 'car-outline' });
-    statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
-  } else if (order.status === 'shipped') {
-    statusActions.push({ label: 'توصيل', status: 'delivered', color: colors.success, icon: 'bag-check-outline' });
-  }
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader
@@ -113,7 +97,23 @@ export function OrderDetailScreen({ navigation, route }: any) {
         <View style={styles.centered}>
           <Text style={{ fontSize: FONT.lg, color: colors.textSecondary }}>الطلب غير موجود</Text>
         </View>
-      ) : (
+      ) : (() => {
+      const statusColor =
+        order.status === 'delivered' || order.status === 'confirmed' ? colors.success :
+        order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? colors.danger :
+        order.status === 'pending' ? colors.warning : colors.primary;
+
+      const statusActions: { label: string; status: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [];
+      if (order.status === 'pending') {
+        statusActions.push({ label: 'تأكيد', status: 'confirmed', color: colors.success, icon: 'checkmark-circle-outline' });
+        statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
+      } else if (order.status === 'confirmed') {
+        statusActions.push({ label: 'شحن', status: 'shipped', color: colors.info, icon: 'car-outline' });
+        statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
+      } else if (order.status === 'shipped') {
+        statusActions.push({ label: 'توصيل', status: 'delivered', color: colors.success, icon: 'bag-check-outline' });
+      }
+      return (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Status Banner */}
       <View style={[styles.statusBanner, { backgroundColor: statusColor }]}>
@@ -269,7 +269,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
         </TouchableOpacity>
       </View>
       </ScrollView>
-      )}
+      );})()}
     </View>
   );
 }

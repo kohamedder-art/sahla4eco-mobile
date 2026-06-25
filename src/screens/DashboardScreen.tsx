@@ -129,6 +129,7 @@ export function DashboardScreen({ navigation }: any) {
         </View>
       ) : (
         recentOrders.map((o: any) => {
+          if (!o) return null;
           const sc = getStatusColor(o.status);
           return (
             <TouchableOpacity

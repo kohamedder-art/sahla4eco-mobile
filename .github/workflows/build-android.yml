@@ -34,11 +34,14 @@ jobs:
       - name: Build APK
         run: cd android && ./gradlew assembleRelease
 
+      - name: Rename APK
+        run: mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/sahla4eco.apk
+
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+          name: sahla4eco
+          path: android/app/build/outputs/apk/release/sahla4eco.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -46,5 +49,5 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }}
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: android/app/build/outputs/apk/release/sahla4eco.apk
           generate_release_notes: false
