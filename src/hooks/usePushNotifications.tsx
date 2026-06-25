@@ -26,6 +26,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,6 +36,19 @@ import type { EventSubscription } from 'expo-modules-core';
 import type { AppNotification } from '../types';
 
 const NOTIFIED_IDS_KEY = 'notified_notification_ids';
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+// Background task handles data-only notifications when app is killed
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error }: any) => {
+  if (error) return;
+  const { title, body, ...rest } = data || {};
+  if (title || body) {
+    Notifications.scheduleNotificationAsync({
+      content: { title, body, data: rest, sound: true },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 1 },
+    }).catch(() => {});
+  }
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -85,17 +99,6 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
     if (!Device.isDevice) {
       console.log('[push] SKIPPED: not a physical device');
       return;
-    }
-
-    // Create Android notification channel for sound to work on Android 8+
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'الإشعارات',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#2563eb',
-        sound: 'default',
-      });
     }
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -168,6 +171,25 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch {}
   }, [user]);
+
+  // Create Android notification channel unconditionally on mount
+  // (must exist BEFORE any push arrives, or Android 8+ silently drops it)
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'الإشعارات',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#2563eb',
+        sound: 'default',
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Register background notification task for notifications when app is killed
+  useEffect(() => {
+    Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(() => {});
+  }, []);
 
   // Auto-register push on cold start when already logged in
   useEffect(() => {
