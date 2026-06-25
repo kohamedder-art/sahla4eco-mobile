@@ -93,11 +93,6 @@ export function OrderDetailScreen({ navigation, route }: any) {
   if (order?.status === 'pending') {
     statusActions.push({ label: 'تأكيد', status: 'confirmed', color: colors.success, icon: 'checkmark-circle-outline' });
     statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
-  } else if (order?.status === 'confirmed') {
-    statusActions.push({ label: 'شحن', status: 'shipped', color: colors.info, icon: 'car-outline' });
-    statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
-  } else if (order?.status === 'shipped') {
-    statusActions.push({ label: 'توصيل', status: 'delivered', color: colors.success, icon: 'bag-check-outline' });
   }
 
   return (
