@@ -9,8 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useAppUpdate } from '../hooks/useAppUpdate';
 import Constants from 'expo-constants';
-import { RADIUS, FONT, SHADOW, GRADIENTS } from '../constants/theme';
-import { Tile } from '../components/Gloss';
+import { RADIUS, FONT } from '../constants/theme';
 
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
@@ -65,11 +64,11 @@ export function SettingsScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Tile colors={[...GRADIENTS.primary]} size={50} radius={16}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+            <Text style={[styles.avatarText, { color: colors.primary }]}>
               {user?.name?.charAt(0) || '?'}
             </Text>
-          </Tile>
+          </View>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name || 'المالك'}</Text>
             <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email || ''}</Text>
@@ -88,9 +87,9 @@ export function SettingsScreen({ navigation }: any) {
             onPress={() => navigation.navigate('NotificationsTab')}
           >
             <View style={styles.settingLeft}>
-              <Tile colors={[...GRADIENTS.primary]} size={34} radius={11}>
-                <Ionicons name="notifications-outline" size={17} color="#fff" />
-              </Tile>
+              <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="notifications-outline" size={17} color={colors.primary} />
+              </View>
               <Text style={[styles.settingLabel, { color: colors.text }]}>الإشعارات</Text>
             </View>
             <View style={styles.settingRight}>
@@ -105,9 +104,9 @@ export function SettingsScreen({ navigation }: any) {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Tile colors={[...GRADIENTS.warning]} size={34} radius={11}>
-                <Ionicons name={isDark ? 'moon' : 'sunny'} size={17} color="#fff" />
-              </Tile>
+              <View style={[styles.iconBox, { backgroundColor: colors.warningLight }]}>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={17} color={colors.warning} />
+              </View>
               <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الوضع الداكن</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>
@@ -131,9 +130,9 @@ export function SettingsScreen({ navigation }: any) {
             disabled={checkingUpdate}
           >
             <View style={styles.settingLeft}>
-              <Tile colors={[...GRADIENTS.info]} size={34} radius={11}>
-                <Ionicons name="refresh-outline" size={17} color="#fff" />
-              </Tile>
+              <View style={[styles.iconBox, { backgroundColor: colors.infoLight }]}>
+                <Ionicons name="refresh-outline" size={17} color={colors.info} />
+              </View>
               <Text style={[styles.settingLabel, { color: colors.text }]}>التحقق من التحديثات</Text>
             </View>
             <View style={styles.settingRight}>
@@ -147,9 +146,9 @@ export function SettingsScreen({ navigation }: any) {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Tile colors={[...GRADIENTS.success]} size={34} radius={11}>
-                <Ionicons name="phone-portrait-outline" size={17} color="#fff" />
-              </Tile>
+              <View style={[styles.iconBox, { backgroundColor: colors.successLight }]}>
+                <Ionicons name="phone-portrait-outline" size={17} color={colors.success} />
+              </View>
               <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الإصدار</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>Build {CURRENT_BUILD}</Text>
@@ -176,9 +175,10 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     borderRadius: RADIUS.lg, padding: 16, marginBottom: 14,
-    borderWidth: StyleSheet.hairlineWidth, ...SHADOW.card,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  avatarText: { fontSize: FONT.xl, fontWeight: '800', color: '#fff' },
+  avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: FONT.xl, fontWeight: '800' },
   profileInfo: { flex: 1 },
   profileName: { fontSize: FONT.lg, fontWeight: '700' },
   profileEmail: { fontSize: FONT.sm, marginTop: 1 },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   settingRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  iconBox: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  iconBox: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   settingLabel: { fontSize: FONT.md, fontWeight: '600' },
   settingHint: { fontSize: FONT.xs, marginTop: 1 },
   settingValue: { fontSize: FONT.sm, fontWeight: '500' },

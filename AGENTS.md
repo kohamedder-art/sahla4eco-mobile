@@ -16,11 +16,14 @@ Always ask first. The user must approve every release.
 
 ## Code Conventions
 
-- Expo SDK 54, React Native 0.81
+- Expo SDK 57, React Native 0.86
 - TypeScript
 - Keep the app BASIC — two purposes only:
   1. See and confirm orders quickly
   2. Receive notifications about new orders / status changes
 - Do NOT duplicate platform functionality (analytics, marketing, billing)
-- Headers use the surface/card background with dark text and a hairline bottom border (Facebook/Instagram style). No solid blue header blocks, no gradients.
+- Classic native mobile feel: solid brand-blue header with white text,
+  hairline-bordered white cards, tinted icon chips (green/blue/orange),
+  quiet weights, tabular numbers, Arabic-safe type (never letterSpacing
+  or uppercase on Arabic). No gradients, no gloss, no glass effects.
 - Arabic UI text (RTL)

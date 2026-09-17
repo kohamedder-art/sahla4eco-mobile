@@ -15,10 +15,7 @@ import {
   Linking, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { GRADIENTS } from '../constants/theme';
-import { Gloss, GlossButton, Tile } from '../components/Gloss';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
@@ -89,11 +86,11 @@ export function OrderDetailScreen({ navigation, route }: any) {
     }
   };
 
-  const statusGrad: [string, string] = !order
-    ? [...GRADIENTS.primary]
-    : order.status === 'delivered' || order.status === 'confirmed' ? [...GRADIENTS.success] :
-      order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? [...GRADIENTS.danger] :
-      order.status === 'pending' ? [...GRADIENTS.warning] : [...GRADIENTS.primary];
+  const statusColor = !order
+    ? colors.primary
+    : order.status === 'delivered' || order.status === 'confirmed' ? colors.success :
+      order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? colors.danger :
+      order.status === 'pending' ? colors.warning : colors.primary;
 
   const statusActions: { label: string; status: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [];
   if (order?.status === 'pending') {
@@ -118,12 +115,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
       ) : (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Status Banner */}
-      <LinearGradient
-        colors={statusGrad}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={styles.statusBanner}
-      >
-        <Gloss radius={RADIUS.lg} />
+      <View style={[styles.statusBanner, { backgroundColor: statusColor }]}>
         <View style={styles.statusGlassIcon}>
           <Ionicons
             name={order.status === 'delivered' ? 'checkmark' : order.status === 'cancelled' ? 'close' : 'time-outline'}
@@ -139,7 +131,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
             <Text style={styles.storeBadgeText}>{order.store_name}</Text>
           </View>
         ) : null}
-      </LinearGradient>
+      </View>
 
       {/* Customer Card */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -237,7 +229,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
           {order.timeline.map((t: any, i: number) => (
             <View key={i} style={styles.timelineItem}>
               <View style={styles.timelineLeft}>
-                <View style={[styles.timelineDot, { backgroundColor: t.active ? statusGrad[0] : colors.border }]} />
+                <View style={[styles.timelineDot, { backgroundColor: t.active ? statusColor : colors.border }]} />
                 {i < order.timeline.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
               </View>
               <View style={styles.timelineContent}>
@@ -255,41 +247,36 @@ export function OrderDetailScreen({ navigation, route }: any) {
       {statusActions.length > 0 && (
         <View style={styles.actions}>
           {statusActions.map((a) => (
-            <View key={a.status} style={{ flex: 1 }}>
+            <TouchableOpacity
+              key={a.status}
+              style={[styles.actionBtn, { backgroundColor: a.color }]}
+              onPress={() => updateStatus(a.status)}
+              disabled={updating}
+              activeOpacity={0.85}
+            >
               {updating ? (
-                <View style={[styles.actionBtnFallback, { backgroundColor: a.color }]}>
-                  <ActivityIndicator color="#fff" size="small" />
-                </View>
+                <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <GlossButton
-                  colors={a.status === 'confirmed' ? [...GRADIENTS.success] : [...GRADIENTS.danger]}
-                  label={a.label}
-                  onPress={() => updateStatus(a.status)}
-                  icon={<Ionicons name={a.icon} size={16} color="#fff" />}
-                  style={{ flex: 1 }}
-                />
+                <>
+                  <Ionicons name={a.icon} size={16} color="#fff" />
+                  <Text style={styles.actionBtnText}>{a.label}</Text>
+                </>
               )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
 
       {/* Customer Contact */}
       <View style={styles.contactRow}>
-        <GlossButton
-          colors={[...GRADIENTS.success]}
-          label="واتساب"
-          onPress={whatsappCustomer}
-          icon={<Ionicons name="logo-whatsapp" size={16} color="#fff" />}
-          style={{ flex: 1 }}
-        />
-        <GlossButton
-          colors={[...GRADIENTS.primary]}
-          label="اتصال"
-          onPress={callCustomer}
-          icon={<Ionicons name="call" size={16} color="#fff" />}
-          style={{ flex: 1 }}
-        />
+        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.success }]} onPress={whatsappCustomer} activeOpacity={0.85}>
+          <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+          <Text style={styles.contactLabel}>واتساب</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.primary }]} onPress={callCustomer} activeOpacity={0.85}>
+          <Ionicons name="call" size={16} color="#fff" />
+          <Text style={styles.contactLabel}>اتصال</Text>
+        </TouchableOpacity>
       </View>
       </ScrollView>
       )}
@@ -304,8 +291,7 @@ const styles = StyleSheet.create({
   statusBanner: {
     flexDirection: 'row', alignItems: 'center',
     padding: 15, borderRadius: RADIUS.lg, marginBottom: 12, gap: 11,
-    overflow: 'hidden',
-    ...SHADOW.button,
+    ...SHADOW.card,
   },
   statusGlassIcon: {
     width: 38, height: 38, borderRadius: 13,
@@ -351,8 +337,15 @@ const styles = StyleSheet.create({
   timelineLabel: { fontSize: FONT.sm },
   timelineTime: { fontSize: FONT.xs, marginTop: 2 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 10 },
-  actionBtnFallback: {
-    padding: 12, borderRadius: RADIUS.lg, alignItems: 'center',
+  actionBtn: {
+    flex: 1, padding: 13, borderRadius: RADIUS.lg, alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'center', gap: 6,
   },
+  actionBtnText: { color: '#fff', fontSize: FONT.md, fontWeight: '700' },
   contactRow: { flexDirection: 'row', gap: 8 },
+  contactBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, padding: 13, borderRadius: RADIUS.lg,
+  },
+  contactLabel: { color: '#fff', fontSize: FONT.md, fontWeight: '700' },
 });

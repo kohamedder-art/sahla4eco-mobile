@@ -5,13 +5,11 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { Gloss, Tile } from '../components/Gloss';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
-import { RADIUS, FONT, TYPE, GRADIENTS, SHADOW } from '../constants/theme';
+import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 import type { MobileOrder, StoreRef } from '../types';
@@ -24,14 +22,6 @@ const FILTER_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']
   confirmed: 'checkmark-circle-outline',
   delivered: 'bag-check-outline',
   cancelled: 'close-circle-outline',
-};
-
-const FILTER_GRADS: Record<string, [string, string]> = {
-  all: [...GRADIENTS.primary],
-  pending: [...GRADIENTS.warning],
-  confirmed: [...GRADIENTS.info],
-  delivered: [...GRADIENTS.success],
-  cancelled: [...GRADIENTS.danger],
 };
 
 export function OrdersScreen({ navigation, route }: any) {
@@ -135,13 +125,6 @@ export function OrdersScreen({ navigation, route }: any) {
     return colors.primary;
   };
 
-  const getStatusGrad = (status: string): [string, string] => {
-    if (status === 'delivered' || status === 'confirmed') return [...GRADIENTS.success];
-    if (status === 'cancelled' || status === 'returned' || status === 'fake') return [...GRADIENTS.danger];
-    if (status === 'pending') return [...GRADIENTS.warning];
-    return [...GRADIENTS.primary];
-  };
-
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -207,17 +190,15 @@ export function OrdersScreen({ navigation, route }: any) {
               const active = activeStore === s.id;
               return (
                 <TouchableOpacity
-                  style={[styles.storeChip, active && { borderColor: colors.primary, borderWidth: 1.5 }]}
+                  style={[styles.storeChip, { backgroundColor: colors.card, borderColor: colors.border }, active && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
                   onPress={() => setActiveStore(s.id)}
                   activeOpacity={0.75}
                 >
-                  {active ? (
-                    <Tile colors={[...GRADIENTS.violet]} size={22} radius={8}>
-                      <Ionicons name="storefront" size={12} color="#fff" />
-                    </Tile>
-                  ) : (
-                    <Ionicons name="storefront-outline" size={15} color={colors.textSecondary} />
-                  )}
+                  <Ionicons
+                    name="storefront-outline"
+                    size={14}
+                    color={active ? colors.primary : colors.textSecondary}
+                  />
                   <Text style={[styles.chipText, { color: active ? colors.primary : colors.textSecondary }]} numberOfLines={1}>
                     {s.name}
                   </Text>
@@ -232,47 +213,26 @@ export function OrdersScreen({ navigation, route }: any) {
           data={FILTERS}
           keyExtractor={(f) => f}
           contentContainerStyle={styles.filterList}
-          renderItem={({ item: f }) => {
-            const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
-            const active = activeFilter === f;
-            const grad = FILTER_GRADS[f] || FILTER_GRADS.all;
-            return (
+            renderItem={({ item: f }) => {
+              const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
+              const active = activeFilter === f;
+              const fg = f === 'all' ? colors.primary : getStatusColor(f);
+              return (
               <TouchableOpacity
-                style={[styles.chip, active && { borderWidth: 0 }]}
+                style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, active && { backgroundColor: fg + '14', borderColor: fg + '50' }]}
                 onPress={() => handleFilter(f)}
                 activeOpacity={0.8}
               >
-                {active ? (
-                  <LinearGradient
-                    colors={grad}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={styles.chipGrad}
-                  >
-                    <Gloss radius={RADIUS.full} height="55%" />
-                    <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={13} color="#fff" />
-                    <Text style={[styles.chipText, { color: '#fff' }]}>
-                      {getStatusLabel(f === 'all' ? 'الكل' : f)}
-                    </Text>
-                    {count > 0 && (
-                      <View style={styles.chipCountSolid}>
-                        <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: grad[0] }]}>{count}</Text>
-                      </View>
-                    )}
-                  </LinearGradient>
-                ) : (
-                  <View style={[styles.chipGhost, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={13} color={colors.textSecondary} />
-                    <Text style={[styles.chipText, { color: colors.textSecondary }]}>
-                      {getStatusLabel(f === 'all' ? 'الكل' : f)}
-                    </Text>
-                    {count > 0 && (
-                      <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: colors.textMuted }]}>{count}</Text>
-                    )}
-                  </View>
+                <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={14} color={active ? fg : colors.textSecondary} />
+                <Text style={[styles.chipText, { color: active ? fg : colors.textSecondary }]}>
+                  {getStatusLabel(f === 'all' ? 'الكل' : f)}
+                </Text>
+                {count > 0 && (
+                  <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: active ? fg : colors.textMuted }]}>{count}</Text>
                 )}
               </TouchableOpacity>
-            );
-          }}
+              );
+            }}
         />
       </View>
 
@@ -292,11 +252,11 @@ export function OrdersScreen({ navigation, route }: any) {
               activeOpacity={0.7}
             >
               <View style={[styles.rail, { backgroundColor: sc }]} />
-              <Tile colors={getStatusGrad(item.status)} size={46} radius={15}>
-                <Text style={styles.avatarText}>
+              <View style={[styles.avatar, { backgroundColor: sc + '14' }]}>
+                <Text style={[styles.avatarText, { color: sc }]}>
                   {item.customer_name?.charAt(0) || '?'}
                 </Text>
-              </Tile>
+              </View>
               <View style={styles.orderInfo}>
                 <View style={styles.nameRow}>
                   <Text style={[styles.customerName, { color: colors.text }]} numberOfLines={1}>
@@ -355,9 +315,9 @@ export function OrdersScreen({ navigation, route }: any) {
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Tile colors={[...GRADIENTS.primary]} size={60} radius={20}>
-              <Ionicons name={search ? 'search-outline' : 'receipt-outline'} size={28} color="#fff" />
-            </Tile>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={search ? 'search-outline' : 'receipt-outline'} size={26} color={colors.primary} />
+            </View>
             <Text style={[styles.emptyText, { color: colors.text }]}>
               {search ? 'لا توجد نتائج بحث' : 'لا توجد طلبات'}
             </Text>
@@ -388,22 +348,15 @@ const styles = StyleSheet.create({
   filterList: { paddingHorizontal: 16, gap: 8, paddingTop: 8 },
   storeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 7, maxWidth: 170,
+    paddingHorizontal: 12, paddingVertical: 8, maxWidth: 170,
     borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: 'transparent',
   },
-  chip: { borderRadius: RADIUS.full, overflow: 'hidden' },
-  chipGrad: {
+  chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 13, paddingVertical: 9, borderRadius: RADIUS.full,
-    ...SHADOW.button,
-  },
-  chipGhost: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 13, paddingVertical: 9, borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 13, paddingVertical: 9,
+    borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth,
   },
   chipText: { fontSize: FONT.xs, fontWeight: '700' },
-  chipCountSolid: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   chipCountText: { fontSize: 10, fontWeight: '800' },
   orderCard: {
     flexDirection: 'row', alignItems: 'center',
@@ -413,7 +366,8 @@ const styles = StyleSheet.create({
     ...SHADOW.card,
   },
   rail: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
-  avatarText: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
+  avatar: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: FONT.lg, fontWeight: '800' },
   orderInfo: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   customerName: { fontSize: FONT.md, fontWeight: '700', flexShrink: 1 },
@@ -434,6 +388,7 @@ const styles = StyleSheet.create({
     ...SHADOW.button,
   },
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 4 },
+  emptyIcon: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: FONT.lg, fontWeight: '800', marginTop: 12 },
   emptyHint: { fontSize: FONT.sm, marginTop: 4 },
   skeleton: { marginHorizontal: 16, marginBottom: 8, borderRadius: RADIUS.lg, padding: 14 },

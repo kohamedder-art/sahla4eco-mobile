@@ -21,7 +21,6 @@ import {
   Platform, ActivityIndicator, Alert, Animated, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useColors } from '../contexts/ThemeContext';
@@ -108,13 +107,9 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.header}>
-            <LinearGradient
-              colors={[colors.primaryDark, colors.primary, '#4f83f8']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.logoWrap}
-            >
+            <View style={[styles.logoWrap, { backgroundColor: colors.primary }]}>
               <Ionicons name="storefront" size={30} color="#fff" />
-            </LinearGradient>
+            </View>
             <Text style={[styles.title, { color: colors.text }]}>Sahla4Eco</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>طلبات متجرك، في جيبك</Text>
           </View>
@@ -202,25 +197,19 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
             </View>
 
             <TouchableOpacity
-              style={[styles.buttonWrap, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
-              activeOpacity={0.88}
+              activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={[colors.primaryDark, colors.primary]}
-                start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                style={styles.button}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <View style={styles.buttonInner}>
-                    <Text style={styles.buttonText}>تسجيل الدخول</Text>
-                    <Ionicons name="arrow-back" size={18} color="#fff" />
-                  </View>
-                )}
-              </LinearGradient>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <View style={styles.buttonInner}>
+                  <Text style={styles.buttonText}>تسجيل الدخول</Text>
+                  <Ionicons name="arrow-back" size={18} color="#fff" />
+                </View>
+              )}
             </TouchableOpacity>
 
             <View style={[styles.divider, { marginTop: 20 }]}>
@@ -259,7 +248,6 @@ const styles = StyleSheet.create({
   logoWrap: {
     width: 68, height: 68, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-    ...SHADOW.button,
   },
   title: { fontSize: 26, fontWeight: '800' },
   subtitle: { fontSize: FONT.md, marginTop: 5, fontWeight: '600' },
@@ -280,7 +268,7 @@ const styles = StyleSheet.create({
   form: { gap: 12 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.lg, paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, height: 52 },
   input: { paddingVertical: 0, fontSize: FONT.md, fontWeight: '500' },
-  buttonWrap: { borderRadius: RADIUS.lg, marginTop: 10, ...SHADOW.button },
+  buttonWrap: { borderRadius: RADIUS.lg, marginTop: 10 },
   button: { borderRadius: RADIUS.lg, padding: 15, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },
   buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },

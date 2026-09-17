@@ -17,8 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { RADIUS, FONT, SHADOW, STATUS_COLORS, GRADIENTS, TYPE } from '../constants/theme';
-import { Tile } from '../components/Gloss';
+import { RADIUS, FONT, SHADOW, STATUS_COLORS, TYPE } from '../constants/theme';
 import { formatCurrency, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 import type { MobileOrder } from '../types';
@@ -244,11 +243,11 @@ export function TrackingScreen({ navigation }: any) {
               {/* Top row: customer + price */}
               <View style={styles.cardTop}>
                 <View style={styles.cardLeft}>
-                  <Tile colors={isBad ? [...GRADIENTS.danger] : sc === colors.success ? [...GRADIENTS.success] : sc === colors.warning ? [...GRADIENTS.warning] : [...GRADIENTS.primary]} size={42} radius={14}>
-                    <Text style={styles.avatarText}>
+                  <View style={[styles.avatar, { backgroundColor: sc + '14' }]}>
+                    <Text style={[styles.avatarText, { color: sc }]}>
                       {item.customer_name?.charAt(0) || '?'}
                     </Text>
-                  </Tile>
+                  </View>
                   <View style={styles.cardInfo}>
                     <Text style={[styles.customerName, { color: colors.text }]} numberOfLines={1}>
                       {item.customer_name}
@@ -295,9 +294,9 @@ export function TrackingScreen({ navigation }: any) {
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Tile colors={[...GRADIENTS.primary]} size={60} radius={20}>
-              <Ionicons name={search ? 'search-outline' : 'car-outline'} size={26} color="#fff" />
-            </Tile>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={search ? 'search-outline' : 'car-outline'} size={26} color={colors.primary} />
+            </View>
             <Text style={[styles.emptyText, { color: colors.text }]}>
               {search ? 'لا توجد نتائج بحث' : 'لا توجد شحنات للتتبع'}
             </Text>
@@ -347,7 +346,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8,
   },
   cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8, gap: 10 },
-  avatarText: { fontSize: FONT.md, fontWeight: '800', color: '#fff' },
+  avatar: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: FONT.md, fontWeight: '800' },
   cardInfo: { flex: 1 },
   customerName: { fontSize: FONT.md, fontWeight: '700' },
   productName: { fontSize: FONT.xs, marginTop: 1 },
@@ -386,6 +386,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 9, fontWeight: '600' },
   orderId: { fontSize: 10, fontWeight: '500' },
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 4 },
+  emptyIcon: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: FONT.lg, fontWeight: '800', marginTop: 12 },
   emptyHint: { fontSize: FONT.sm, marginTop: 4 },
 });

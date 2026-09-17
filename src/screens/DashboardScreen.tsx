@@ -5,13 +5,11 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { Gloss, GlossButton, Tile } from '../components/Gloss';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
-import { RADIUS, FONT, TYPE, GRADIENTS, SHADOW } from '../constants/theme';
+import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 
@@ -148,14 +146,8 @@ export function DashboardScreen({ navigation }: any) {
       />
 
       <View style={styles.content}>
-        {/* TODAY hero — overlaps the header curve */}
-        <LinearGradient
-          colors={[...GRADIENTS.header]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
-          <Gloss radius={RADIUS.xl} />
+        {/* TODAY hero */}
+        <View style={[styles.hero, { backgroundColor: colors.primary }]}>
           <View style={styles.heroCol}>
             <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{formatCurrency(stats?.today_revenue || 0)}</Text>
             <Text style={styles.heroLabel}>إيرادات اليوم</Text>
@@ -171,12 +163,10 @@ export function DashboardScreen({ navigation }: any) {
             onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: 'pending' } })}
             activeOpacity={0.7}
           >
-            <View style={styles.pendingPill}>
-              <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(pendingCount || 0)}</Text>
-            </View>
+            <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(pendingCount || 0)}</Text>
             <Text style={styles.heroLabel}>بانتظارك</Text>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         {/* Status counters — full-bleed snap carousel */}
         {stats && (
@@ -189,10 +179,10 @@ export function DashboardScreen({ navigation }: any) {
             decelerationRate="fast"
           >
             {[
-              { key: 'pending', label: 'معلق', count: stats.pending_count || 0, colors: [...GRADIENTS.warning] as [string, string], icon: 'time-outline' },
-              { key: 'confirmed', label: 'مؤكد', count: stats.confirmed_count || 0, colors: [...GRADIENTS.primary] as [string, string], icon: 'checkmark-circle-outline' },
-              { key: 'delivered', label: 'تم', count: stats.delivered_count || 0, colors: [...GRADIENTS.success] as [string, string], icon: 'bag-check-outline' },
-              { key: 'cancelled', label: 'ملغي', count: stats.cancelled_count || 0, colors: [...GRADIENTS.danger] as [string, string], icon: 'close-circle-outline' },
+              { key: 'pending', label: 'معلق', count: stats.pending_count || 0, bg: colors.warningLight, fg: colors.warning, icon: 'time-outline' },
+              { key: 'confirmed', label: 'مؤكد', count: stats.confirmed_count || 0, bg: colors.primaryLight, fg: colors.primary, icon: 'checkmark-circle-outline' },
+              { key: 'delivered', label: 'تم', count: stats.delivered_count || 0, bg: colors.successLight, fg: colors.success, icon: 'bag-check-outline' },
+              { key: 'cancelled', label: 'ملغي', count: stats.cancelled_count || 0, bg: colors.dangerLight, fg: colors.danger, icon: 'close-circle-outline' },
             ].map((c) => (
               <TouchableOpacity
                 key={c.key}
@@ -200,9 +190,9 @@ export function DashboardScreen({ navigation }: any) {
                 onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: c.key } })}
                 activeOpacity={0.75}
               >
-                <Tile colors={c.colors} size={36} radius={12}>
-                  <Ionicons name={c.icon as any} size={18} color="#fff" />
-                </Tile>
+                <View style={[styles.counterIcon, { backgroundColor: c.bg }]}>
+                  <Ionicons name={c.icon as any} size={18} color={c.fg} />
+                </View>
                 <Text style={[styles.counterCount, TYPE.tabularNumbers, { color: colors.text }]}>{c.count}</Text>
                 <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>{c.label}</Text>
               </TouchableOpacity>
@@ -227,13 +217,18 @@ export function DashboardScreen({ navigation }: any) {
                     #{o.id} · {formatCurrency(o.total_price)} · {formatTimeAgo(o.created_at)}
                   </Text>
                 </View>
-                <GlossButton
-                  colors={[...GRADIENTS.success]}
-                  label="تأكيد"
+                <TouchableOpacity
+                  style={[styles.confirmBtn, { backgroundColor: colors.success }]}
                   onPress={() => quickConfirm(o.id)}
                   disabled={confirmingId === o.id}
-                  style={{ minWidth: 92 }}
-                />
+                  activeOpacity={0.85}
+                >
+                  {confirmingId === o.id ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.confirmText}>تأكيد</Text>
+                  )}
+                </TouchableOpacity>
               </View>
             ))}
           </View>
@@ -244,9 +239,9 @@ export function DashboardScreen({ navigation }: any) {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>أحدث الطلبات</Text>
           {recentOrders.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Tile colors={[...GRADIENTS.primary]} size={56} radius={18}>
-                <Ionicons name="bag-outline" size={26} color="#fff" />
-              </Tile>
+              <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="bag-outline" size={26} color={colors.primary} />
+              </View>
               <Text style={[styles.emptyText, { color: colors.text }]}>لا توجد طلبات بعد</Text>
               <Text style={[styles.emptyHint, { color: colors.textMuted }]}>أول طلب يوصلك راح يظهر هنا مباشرة</Text>
             </View>
@@ -309,27 +304,20 @@ export function DashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 120 },
-  content: { paddingHorizontal: 16, paddingTop: 0 },
+  scrollContent: { paddingBottom: 32 },
+  content: { paddingHorizontal: 16, paddingTop: 12 },
   hero: {
     flexDirection: 'row', alignItems: 'stretch',
-    borderRadius: RADIUS.xl, paddingVertical: 18,
-    overflow: 'hidden',
-    marginTop: -22,
-    zIndex: 5,
-    ...SHADOW.button,
+    borderRadius: RADIUS.lg, paddingVertical: 18,
+    ...SHADOW.card,
   },
   heroCol: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   heroDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)', marginVertical: 2 },
   heroValue: { fontSize: 21, fontWeight: '800', color: '#fff' },
   heroLabel: { fontSize: FONT.sm, fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginTop: 4 },
-  pendingPill: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
-    borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 2,
-  },
   counters: { gap: 10, paddingHorizontal: 16, paddingTop: 14 },
   countersBleed: { marginHorizontal: -16 },
+  counterIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   counter: {
     width: 138, alignItems: 'center', paddingVertical: 14, gap: 6,
     borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
@@ -347,6 +335,8 @@ const styles = StyleSheet.create({
   actionInfo: { flex: 1 },
   actionName: { fontSize: FONT.md, fontWeight: '700' },
   actionMeta: { fontSize: FONT.xs, marginTop: 2 },
+  confirmBtn: { paddingHorizontal: 22, paddingVertical: 10, borderRadius: RADIUS.md, minWidth: 92, alignItems: 'center' },
+  confirmText: { color: '#fff', fontSize: FONT.sm, fontWeight: '700' },
   row: {
     flexDirection: 'row', alignItems: 'center',
     marginBottom: 8, padding: 12, paddingLeft: 8,
@@ -373,6 +363,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', paddingVertical: 40,
     borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, gap: 4,
   },
+  emptyIcon: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: FONT.md, fontWeight: '800', marginTop: 12 },
   emptyHint: { fontSize: FONT.sm, marginTop: 4 },
   skel: {},

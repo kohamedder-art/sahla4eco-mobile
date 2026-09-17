@@ -16,8 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
-import { RADIUS, FONT, TYPE, GRADIENTS } from '../constants/theme';
-import { Tile } from '../components/Gloss';
+import { RADIUS, FONT, TYPE } from '../constants/theme';
 import { formatTimeAgo } from '../utils/format';
 import type { AppNotification } from '../types';
 
@@ -46,17 +45,6 @@ export function NotificationsScreen({ navigation }: any) {
       case 'flagged_order': return 'flag-outline';
       case 'ai_alert': return 'hardware-chip-outline';
       default: return 'notifications-outline';
-    }
-  };
-
-  const getTypeGrad = (type: string): [string, string] => {
-    switch (type) {
-      case 'new_order': return [...GRADIENTS.success];
-      case 'status_change': return [...GRADIENTS.primary];
-      case 'low_stock': return [...GRADIENTS.warning];
-      case 'flagged_order': return [...GRADIENTS.danger];
-      case 'ai_alert': return [...GRADIENTS.violet];
-      default: return [...GRADIENTS.info];
     }
   };
 
@@ -102,9 +90,9 @@ export function NotificationsScreen({ navigation }: any) {
               }}
               activeOpacity={0.7}
             >
-              <Tile colors={getTypeGrad(item.type)} size={42} radius={14}>
-                <Ionicons name={getTypeIcon(item.type)} size={19} color="#fff" />
-              </Tile>
+              <View style={[styles.notifIcon, { backgroundColor: typeColor + '14' }]}>
+                <Ionicons name={getTypeIcon(item.type)} size={18} color={typeColor} />
+              </View>
               <View style={styles.notifBody}>
                 <View style={styles.notifTop}>
                   <Text style={[styles.notifTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
@@ -118,9 +106,9 @@ export function NotificationsScreen({ navigation }: any) {
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Tile colors={[...GRADIENTS.primary]} size={60} radius={20}>
-              <Ionicons name="notifications-off-outline" size={26} color="#fff" />
-            </Tile>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="notifications-off-outline" size={26} color={colors.primary} />
+            </View>
             <Text style={[styles.emptyText, { color: colors.text }]}>لا توجد إشعارات</Text>
             <Text style={[styles.emptyHint, { color: colors.textMuted }]}>عند وصول إشعار جديد، ستراه هنا</Text>
           </View>
@@ -137,7 +125,7 @@ const styles = StyleSheet.create({
     padding: 13, borderRadius: RADIUS.lg,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  notifIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 11 },
+  notifIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 11 },
   notifBody: { flex: 1 },
   notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
   notifTitle: { fontSize: FONT.md, fontWeight: '700', flex: 1, marginRight: 8 },
@@ -145,6 +133,7 @@ const styles = StyleSheet.create({
   notifBodyText: { fontSize: FONT.sm, lineHeight: 19 },
   unreadDot: { width: 9, height: 9, borderRadius: 4.5, marginLeft: 8 },
   emptyState: { alignItems: 'center', paddingVertical: 70, gap: 4 },
+  emptyIcon: { width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: FONT.lg, fontWeight: '800', marginTop: 12 },
   emptyHint: { fontSize: FONT.sm, marginTop: 4 },
 });

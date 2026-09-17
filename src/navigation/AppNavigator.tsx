@@ -28,8 +28,6 @@ import { OrderDetailScreen } from '../screens/OrderDetailScreen';
 import { TrackingScreen } from '../screens/TrackingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
-import { Tile } from '../components/Gloss';
-import { GRADIENTS } from '../constants/theme';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 
@@ -50,14 +48,7 @@ function OrdersStackScreen() {
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 function TabIcon({ name, focused, color }: { name: IoniconsName; focused: boolean; color: string }) {
-  if (focused) {
-    return (
-      <Tile colors={[...GRADIENTS.primary]} size={34} radius={11}>
-        <Ionicons name={name} size={19} color="#fff" />
-      </Tile>
-    );
-  }
-  return <Ionicons name={name} size={23} color={color} />;
+  return <Ionicons name={name} size={24} color={color} />;
 }
 
 export function AppNavigator() {
@@ -70,28 +61,16 @@ export function AppNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          position: 'absolute',
-          left: 16,
-          right: 16,
-          bottom: 12 + insets.bottom,
-          height: 68,
-          borderRadius: 24,
           backgroundColor: colors.card,
-          borderTopWidth: 0,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-          paddingBottom: 0,
+          borderTopColor: colors.border,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 6,
           paddingTop: 8,
-          elevation: 12,
-          shadowColor: '#0f172a',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.14,
-          shadowRadius: 16,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '700', marginTop: 3 },
-        tabBarItemStyle: { paddingVertical: 2 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
       }}
     >
       <Tab.Screen
