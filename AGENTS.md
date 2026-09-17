@@ -22,5 +22,5 @@ Always ask first. The user must approve every release.
   1. See and confirm orders quickly
   2. Receive notifications about new orders / status changes
 - Do NOT duplicate platform functionality (analytics, marketing, billing)
-- Headers use primary color background with white text/icons (extends into status bar)
+- Headers use the surface/card background with dark text and a hairline bottom border (Facebook/Instagram style). No solid blue header blocks, no gradients.
 - Arabic UI text (RTL)

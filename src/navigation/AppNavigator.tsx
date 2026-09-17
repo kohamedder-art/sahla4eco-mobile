@@ -75,7 +75,7 @@ export function AppNavigator() {
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 3 },
       }}
     >
       <Tab.Screen
@@ -102,13 +102,14 @@ export function AppNavigator() {
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name={focused ? 'notifications' : 'notifications-outline'} focused={focused} color={color} />
           ),
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined,
           tabBarBadgeStyle: {
-            backgroundColor: colors.danger,
-            fontSize: 9,
+            backgroundColor: colors.notification,
+            fontSize: 10,
             fontWeight: '800',
-            minWidth: 16,
-            height: 16,
+            minWidth: 18,
+            height: 18,
+            fontVariant: ['tabular-nums'],
           },
         }}
       />

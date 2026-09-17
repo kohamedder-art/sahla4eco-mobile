@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
-import { RADIUS, FONT } from '../constants/theme';
+import { RADIUS, FONT, TYPE } from '../constants/theme';
 import { formatTimeAgo } from '../utils/format';
 import type { AppNotification } from '../types';
 
@@ -56,11 +56,12 @@ export function NotificationsScreen({ navigation }: any) {
         rightAction={
           unreadCount > 0 ? (
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.sm }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primaryFaint, paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full }}
               onPress={() => markAllRead().catch(() => {})}
+              activeOpacity={0.7}
             >
-              <Ionicons name="checkmark-done-outline" size={14} color="#fff" />
-              <Text style={{ fontSize: FONT.xs, fontWeight: '600', color: '#fff' }}>تحديد الكل</Text>
+              <Ionicons name="checkmark-done-outline" size={15} color={colors.primary} />
+              <Text style={{ fontSize: FONT.xs, fontWeight: '700', color: colors.primary }}>تحديد الكل</Text>
             </TouchableOpacity>
           ) : undefined
         }
@@ -79,22 +80,23 @@ export function NotificationsScreen({ navigation }: any) {
             <TouchableOpacity
               style={[
                 styles.notifRow,
-                { backgroundColor: colors.card },
-                !item.read && { borderLeftColor: typeColor },
+                { backgroundColor: colors.card, borderColor: colors.border },
+                !item.read && { backgroundColor: colors.primaryFaint, borderColor: colors.primary + '30' },
               ]}
               onPress={() => {
                 if (item.order_id) {
                   navigation.navigate('OrdersTab', { screen: 'OrderDetail', params: { id: item.order_id } });
                 }
               }}
+              activeOpacity={0.7}
             >
-              <View style={[styles.notifIcon, { backgroundColor: typeColor + '15' }]}>
-                <Ionicons name={getTypeIcon(item.type)} size={16} color={typeColor} />
+              <View style={[styles.notifIcon, { backgroundColor: typeColor + '14' }]}>
+                <Ionicons name={getTypeIcon(item.type)} size={17} color={typeColor} />
               </View>
               <View style={styles.notifBody}>
                 <View style={styles.notifTop}>
                   <Text style={[styles.notifTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
-                  <Text style={[styles.notifTime, { color: colors.textMuted }]}>{formatTimeAgo(item.created_at)}</Text>
+                  <Text style={[styles.notifTime, TYPE.tabularNumbers, { color: colors.textMuted }]}>{formatTimeAgo(item.created_at)}</Text>
                 </View>
                 <Text style={[styles.notifBodyText, { color: colors.textSecondary }]} numberOfLines={2}>{item.body}</Text>
               </View>
@@ -119,18 +121,19 @@ export function NotificationsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   notifRow: {
-    flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 6,
-    padding: 12, borderRadius: RADIUS.lg, borderLeftWidth: 3, borderLeftColor: 'transparent',
+    flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8,
+    padding: 13, borderRadius: RADIUS.lg,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  notifIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  notifIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 11 },
   notifBody: { flex: 1 },
-  notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
-  notifTitle: { fontSize: FONT.sm, fontWeight: '700', flex: 1, marginRight: 6 },
-  notifTime: { fontSize: 10, fontWeight: '500' },
-  notifBodyText: { fontSize: FONT.xs, lineHeight: 16 },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
-  emptyState: { alignItems: 'center', paddingVertical: 60 },
-  emptyIconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  emptyText: { fontSize: FONT.md, fontWeight: '700' },
-  emptyHint: { fontSize: FONT.sm, marginTop: 2 },
+  notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
+  notifTitle: { fontSize: FONT.md, fontWeight: '700', flex: 1, marginRight: 8 },
+  notifTime: { fontSize: 10, fontWeight: '600' },
+  notifBodyText: { fontSize: FONT.sm, lineHeight: 19 },
+  unreadDot: { width: 9, height: 9, borderRadius: 4.5, marginLeft: 8 },
+  emptyState: { alignItems: 'center', paddingVertical: 70 },
+  emptyIconWrap: { width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  emptyText: { fontSize: FONT.lg, fontWeight: '800' },
+  emptyHint: { fontSize: FONT.sm, marginTop: 4 },
 });

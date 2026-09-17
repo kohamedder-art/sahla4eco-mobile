@@ -25,26 +25,59 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
+import type * as ExpoNotifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../contexts/AuthContext';
 import { registerPushToken, unregisterPushToken, fetchNotifications, markNotificationsRead } from '../api/auth';
 import { getJwt } from '../api/client';
-import type { EventSubscription } from 'expo-modules-core';
+type EventSubscription = { remove(): void };
 import type { AppNotification } from '../types';
 
 const NOTIFIED_IDS_KEY = 'notified_notification_ids';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+/**
+ * Native push (FCM token + system popups) only exists in development /
+ * production builds. In Expo Go (SDK 53+) those APIs throw, so the whole
+ * native layer is switched off there. The server notification LIST keeps
+ * working everywhere — only the OS-level popup is Go-skipped.
+ */
+const PUSH_NATIVE =
+  Device.isDevice && Constants.appOwnership !== 'expo';
+
+/**
+ * Lazy runtime binding for expo-notifications.
+ * The package runs an auto-registration side effect ON IMPORT that throws
+ * on Android Expo Go (SDK 53+). So: type-only import above (erased at runtime),
+ * real module loaded here — and only in production/development builds.
+ */
+let nativeMod: typeof ExpoNotifications | null = null;
+async function native(): Promise<typeof ExpoNotifications | null> {
+  if (!PUSH_NATIVE) return null;
+  if (!nativeMod) nativeMod = await import('expo-notifications');
+  return nativeMod;
+}
+
+async function ensureHandler(): Promise<void> {
+  const N = await native();
+  if (!N) return;
+  N.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
+
+if (PUSH_NATIVE) {
+  // Set once a real native module can exist. In Expo Go this whole file
+  // runs without ever loading expo-notifications (see native() above).
+  ensureHandler().catch(() => {});
+}
 
 interface NotifContextType {
   notifications: AppNotification[];
@@ -81,17 +114,19 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async () => {
-    console.log('[push] register() called, isDevice:', Device.isDevice);
-    if (!Device.isDevice) {
-      console.log('[push] SKIPPED: not a physical device');
+    const N = await native();
+    if (!N) {
+      console.log('[push] SKIPPED: native push unavailable (Expo Go or emulator)');
       return;
     }
+    console.log('[push] register() called');
+    await ensureHandler();
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } = await N.getPermissionsAsync();
     console.log('[push] existing permission:', existingStatus);
     let finalStatus = existingStatus;
     if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await N.requestPermissionsAsync();
       finalStatus = status;
       console.log('[push] requested permission result:', finalStatus);
     }
@@ -101,7 +136,7 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const tokenData = await Notifications.getDevicePushTokenAsync();
+      const tokenData = await N.getDevicePushTokenAsync();
       console.log('[push] got FCM token:', tokenData.data);
       setExpoPushToken(tokenData.data);
       if (tokenData.data) {
@@ -132,15 +167,22 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
         if (n.id && !seenNotifIds.current.has(n.id)) {
           seenNotifIds.current.add(n.id);
           changed = true;
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: n.title,
-              body: n.body,
-              data: { type: n.type, order_id: n.order_id },
-              sound: true,
-            },
-            trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, channelId: 'default', seconds: 1 },
-          }).catch(() => {});
+          if (PUSH_NATIVE) {
+            try {
+              const N = await native();
+              if (N) {
+                await N.scheduleNotificationAsync({
+                  content: {
+                    title: n.title,
+                    body: n.body,
+                    data: { type: n.type, order_id: n.order_id },
+                    sound: true,
+                  },
+                  trigger: { type: N.SchedulableTriggerInputTypes.TIME_INTERVAL, channelId: 'default', seconds: 1 },
+                });
+              }
+            } catch {}
+          }
         }
       }
       if (changed) persistSeenIds(seenNotifIds.current);
@@ -161,13 +203,16 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
   // Create Android notification channel unconditionally on mount
   // (must exist BEFORE any push arrives, or Android 8+ silently drops it)
   useEffect(() => {
+    if (!PUSH_NATIVE) return;
     if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'الإشعارات',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#2563eb',
-        sound: 'default',
+      native().then((N) => {
+        N?.setNotificationChannelAsync('default', {
+          name: 'الإشعارات',
+          importance: N.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#2563eb',
+          sound: 'default',
+        }).catch(() => {});
       }).catch(() => {});
     }
   }, []);
@@ -204,31 +249,46 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for incoming notifications
   useEffect(() => {
-    const notifSub = Notifications.addNotificationReceivedListener((n) => {
-      const data = n.request.content.data as any;
-      if (data?.type) {
-        setNotifications((prev) => [
-          {
-            id: Date.now(),
-            type: data.type,
-            title: n.request.content.title || '',
-            body: n.request.content.body || '',
-            order_id: data.order_id,
-            read: false,
-            created_at: new Date().toISOString(),
-          },
-          ...prev,
-        ]);
-      }
-    });
+    if (!PUSH_NATIVE) return;
+    let notifSub: { remove(): void } | undefined;
+    let respSub: { remove(): void } | undefined;
+    let alive = true;
+    native().then((N) => {
+      if (!N || !alive) return;
+      notifSub = N.addNotificationReceivedListener((n) => {
+        const data = n.request.content.data as any;
+        // Mark FCM-shown ids as seen so the 4s poll doesn't ping them again
+        // (kills the double notification: one native + one local for one order).
+        const nid = Number(data?.notif_id);
+        if (nid) {
+          seenNotifIds.current.add(nid);
+          persistSeenIds(seenNotifIds.current);
+        }
+        if (data?.type) {
+          setNotifications((prev) => [
+            {
+              id: Date.now(),
+              type: data.type,
+              title: n.request.content.title || '',
+              body: n.request.content.body || '',
+              order_id: data.order_id,
+              read: false,
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ]);
+        }
+      });
 
-    const respSub = Notifications.addNotificationResponseReceivedListener((r) => {
-      // Navigation handled by the app navigator
+      respSub = N.addNotificationResponseReceivedListener(() => {
+        // Navigation handled by the app navigator
+      });
     });
 
     return () => {
-      notifSub.remove();
-      respSub.remove();
+      alive = false;
+      notifSub?.remove();
+      respSub?.remove();
     };
   }, []);
 

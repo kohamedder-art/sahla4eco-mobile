@@ -9,13 +9,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
-  ActivityIndicator, TextInput, Clipboard, Platform,
+  ActivityIndicator, TextInput, Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { RADIUS, FONT, SHADOW, STATUS_COLORS } from '../constants/theme';
 import { formatCurrency, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
@@ -109,7 +110,6 @@ function TrackingProgress({ status, colors }: { status: string; colors: Record<s
 export function TrackingScreen({ navigation }: any) {
   const { getAccessToken } = useAuth();
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState<MobileOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -163,8 +163,10 @@ export function TrackingScreen({ navigation }: any) {
     );
   }, [orders, search]);
 
-  const handleCopy = (tracking: string, id: number) => {
-    Clipboard.setString(tracking);
+  const handleCopy = async (tracking: string, id: number) => {
+    try {
+      await Clipboard.setStringAsync(tracking);
+    } catch {}
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -179,14 +181,10 @@ export function TrackingScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Inline header */}
-      <View style={[styles.inlineHeader, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-forward" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={[styles.inlineTitle, { color: '#fff' }]}>تتبع الشحنات</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <ScreenHeader
+        title="تتبع الشحنات"
+        onBackPress={() => navigation.goBack()}
+      />
       {/* Stats Summary */}
       <View style={styles.statsRow}>
         <View style={[styles.statBox, { backgroundColor: colors.primaryLight }]}>

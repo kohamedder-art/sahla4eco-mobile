@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { FONT } from '../constants/theme';
@@ -15,27 +16,30 @@ interface Props {
 
 export function ScreenHeader({ title, subtitle, onBackPress, onNotificationPress, rightAction }: Props) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const { unreadCount } = useNotif();
 
   return (
-    <View style={[styles.bar, { backgroundColor: colors.primary }]}>
+    <View style={[styles.bar, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: insets.top + 2 }]}>
       <View style={styles.row}>
         {onBackPress && (
-          <TouchableOpacity onPress={onBackPress} style={styles.backBtn}>
-            <Ionicons name="arrow-forward" size={22} color="#fff" />
+          <TouchableOpacity onPress={onBackPress} style={styles.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name="arrow-forward" size={22} color={colors.text} />
           </TouchableOpacity>
         )}
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
-        <View style={{ flex: 1 }} />
+        <View style={styles.titles}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>
+          {subtitle ? <Text style={[styles.subtitle, { color: colors.textMuted }]} numberOfLines={1}>{subtitle}</Text> : null}
+        </View>
         {rightAction ? rightAction : onNotificationPress && (
-          <TouchableOpacity style={[styles.notifBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={onNotificationPress}>
-            <Ionicons name="notifications-outline" size={20} color="#fff" />
-            {unreadCount > 0 && (
-              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-              </View>
-            )}
+          <TouchableOpacity
+            style={styles.notifBtn}
+            onPress={onNotificationPress}
+            activeOpacity={0.7}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Ionicons name="notifications-outline" size={23} color={colors.text} />
+            {unreadCount > 0 && <View style={styles.dot} />}
           </TouchableOpacity>
         )}
       </View>
@@ -45,49 +49,41 @@ export function ScreenHeader({ title, subtitle, onBackPress, onNotificationPress
 
 const styles = StyleSheet.create({
   bar: {
-    paddingVertical: 10,
+    paddingBottom: 10,
     paddingHorizontal: 16,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 40,
+  },
+  titles: {
+    flex: 1,
+    marginRight: 8,
   },
   title: {
-    fontSize: FONT.lg,
-    fontWeight: '800',
-    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
   },
   subtitle: {
     fontSize: FONT.xs,
-    color: 'rgba(255,255,255,0.65)',
-    marginLeft: 8,
+    fontWeight: '500',
+    marginTop: 1,
   },
   backBtn: {
-    paddingRight: 8,
-    paddingVertical: 4,
+    paddingRight: 10,
+    paddingVertical: 6,
   },
   notifBtn: {
-    width: 32, height: 32, borderRadius: 10,
+    width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center',
   },
-  badge: {
-    position: 'absolute', top: -3, right: -3,
-    minWidth: 16, height: 16, borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 3,
+  dot: {
+    position: 'absolute', top: 8, right: 9,
+    width: 9, height: 9, borderRadius: 4.5,
+    backgroundColor: '#e11d48',
+    borderWidth: 1.5,
+    borderColor: '#fff',
   },
-  badgeText: { color: '#fff', fontSize: 8, fontWeight: '800' },
 });

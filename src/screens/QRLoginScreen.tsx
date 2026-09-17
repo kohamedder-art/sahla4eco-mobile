@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   camera: { flex: 1 },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center', alignItems: 'center',
   },

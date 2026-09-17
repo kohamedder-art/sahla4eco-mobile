@@ -15,10 +15,11 @@ import {
   Linking, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
-import { RADIUS, FONT } from '../constants/theme';
+import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatDate, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 import type { OrderDetail } from '../types';
@@ -50,6 +51,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
   const updateStatus = async (status: string) => {
     setUpdating(true);
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       const token = await getAccessToken();
       if (!token) return;
       const res = await fetch(`${baseUrl}/api/mobile/orders/${id}/status`, {
@@ -58,6 +60,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         const refreshed = await fetch(`${baseUrl}/api/mobile/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         }).then(r => r.json());
@@ -112,16 +115,26 @@ export function OrderDetailScreen({ navigation, route }: any) {
       ) : (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Status Banner */}
-      <View style={[styles.statusBanner, { backgroundColor: statusColor }]}>
-        <Ionicons
-          name={order.status === 'delivered' ? 'checkmark-circle' : order.status === 'cancelled' ? 'close-circle' : 'time'}
-          size={18} color="#fff"
-        />
-        <Text style={styles.statusText}>{getStatusLabel(order.status)}</Text>
+      <View style={[styles.statusBanner, { backgroundColor: statusColor + '14', borderColor: statusColor + '40' }]}>
+        <View style={[styles.statusIconWrap, { backgroundColor: statusColor }]}>
+          <Ionicons
+            name={order.status === 'delivered' ? 'checkmark' : order.status === 'cancelled' ? 'close' : 'time-outline'}
+            size={15} color="#fff"
+          />
+        </View>
+        <View style={styles.statusTexts}>
+          <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel(order.status)}</Text>
+          <Text style={[styles.statusSub, TYPE.tabularNumbers, { color: colors.textSecondary }]}>طلب #{order.id}</Text>
+        </View>
+        {order.store_name ? (
+          <View style={[styles.storeBadge, { backgroundColor: colors.primaryFaint }]}>
+            <Text style={[styles.storeBadgeText, { color: colors.primary }]}>{order.store_name}</Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Customer Card */}
-      <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="person-outline" size={14} color={colors.textMuted} />
           <Text style={[styles.cardTitle, { color: colors.textMuted }]}>العميل</Text>
@@ -142,7 +155,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
       </View>
 
       {/* Product Card */}
-      <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="bag-outline" size={14} color={colors.textMuted} />
           <Text style={[styles.cardTitle, { color: colors.textMuted }]}>المنتج</Text>
@@ -157,12 +170,12 @@ export function OrderDetailScreen({ navigation, route }: any) {
         <Text style={[styles.quantity, { color: colors.textSecondary }]}>الكمية: {order.quantity}</Text>
         <View style={[styles.priceRow, { borderTopColor: colors.border }]}>
           <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>المجموع</Text>
-          <Text style={[styles.price, { color: colors.text }]}>{formatCurrency(order.total_price, order.currency)}</Text>
+          <Text style={[styles.price, TYPE.tabularNumbers, { color: colors.text }]}>{formatCurrency(order.total_price, order.currency)}</Text>
         </View>
       </View>
 
       {/* Source Card */}
-      <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="information-circle-outline" size={14} color={colors.textMuted} />
           <Text style={[styles.cardTitle, { color: colors.textMuted }]}>مصدر الطلب</Text>
@@ -208,7 +221,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
 
       {/* Timeline */}
       {order.timeline && order.timeline.length > 0 && (
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="time-outline" size={14} color={colors.textMuted} />
             <Text style={[styles.cardTitle, { color: colors.textMuted }]}>آخر التحديثات</Text>
@@ -275,15 +288,23 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   statusBanner: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    padding: 12, borderRadius: RADIUS.lg, marginBottom: 12, gap: 8,
+    flexDirection: 'row', alignItems: 'center',
+    padding: 14, borderRadius: RADIUS.lg, marginBottom: 12, gap: 10,
+    borderWidth: 1,
   },
-  statusText: { fontSize: FONT.md, fontWeight: '700', color: '#fff' },
+  statusIconWrap: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  statusTexts: { flex: 1 },
+  statusText: { fontSize: FONT.md, fontWeight: '800' },
+  statusSub: { fontSize: FONT.xs, fontWeight: '600', marginTop: 1 },
+  storeBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: RADIUS.full },
+  storeBadgeText: { fontSize: FONT.xs, fontWeight: '800' },
   card: {
     borderRadius: RADIUS.lg, padding: 16, marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    ...SHADOW.card,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  cardTitle: { fontSize: FONT.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
+  cardTitle: { fontSize: FONT.sm, fontWeight: '700' },
   customerName: { fontSize: FONT.lg, fontWeight: '700', marginBottom: 8 },
   phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   phone: { fontSize: FONT.md, fontWeight: '600' },

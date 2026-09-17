@@ -21,10 +21,11 @@ import {
   Platform, ActivityIndicator, Alert, Animated, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useColors } from '../contexts/ThemeContext';
-import { RADIUS, FONT } from '../constants/theme';
+import { RADIUS, FONT, SHADOW } from '../constants/theme';
 
 const GOOGLE_OAUTH_URL = 'https://www.sahla4eco.com/api/oauth/google/url?client=mobile';
 
@@ -38,6 +39,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [accountLoading, setAccountLoading] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -106,11 +108,15 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.header}>
-            <View style={[styles.logoWrap, { backgroundColor: colors.primary }]}>
-              <Ionicons name="storefront" size={28} color="#fff" />
-            </View>
+            <LinearGradient
+              colors={[colors.primaryDark, colors.primary, '#4f83f8']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.logoWrap}
+            >
+              <Ionicons name="storefront" size={30} color="#fff" />
+            </LinearGradient>
             <Text style={[styles.title, { color: colors.text }]}>Sahla4Eco</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>لوحة تحكم المتجر</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>طلبات متجرك، في جيبك</Text>
           </View>
 
           {savedAccounts.length > 0 && (
@@ -154,12 +160,18 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
           )}
 
           <View style={styles.form}>
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="mail-outline" size={16} color={colors.textMuted} />
+            <View style={[
+              styles.inputWrap,
+              { backgroundColor: colors.card, borderColor: focusedField === 'email' ? colors.primary : colors.border },
+              focusedField === 'email' && { borderWidth: 1.5 },
+            ]}>
+              <Ionicons name="mail-outline" size={17} color={focusedField === 'email' ? colors.primary : colors.textMuted} />
               <TextInput
                 style={[styles.input, { color: colors.text, flex: 1 }]}
                 value={email}
                 onChangeText={setEmail}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
                 placeholder="البريد الإلكتروني"
                 placeholderTextColor={colors.textMuted}
                 keyboardType="email-address"
@@ -168,34 +180,47 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
               />
             </View>
 
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="lock-closed-outline" size={16} color={colors.textMuted} />
+            <View style={[
+              styles.inputWrap,
+              { backgroundColor: colors.card, borderColor: focusedField === 'password' ? colors.primary : colors.border },
+              focusedField === 'password' && { borderWidth: 1.5 },
+            ]}>
+              <Ionicons name="lock-closed-outline" size={17} color={focusedField === 'password' ? colors.primary : colors.textMuted} />
               <TextInput
                 style={[styles.input, { color: colors.text, flex: 1 }]}
                 value={password}
                 onChangeText={setPassword}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
                 placeholder="كلمة المرور"
                 placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={16} color={colors.textMuted} />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={17} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+              style={[styles.buttonWrap, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
+              activeOpacity={0.88}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <View style={styles.buttonInner}>
-                  <Ionicons name="log-in-outline" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>تسجيل الدخول</Text>
-                </View>
-              )}
+              <LinearGradient
+                colors={[colors.primaryDark, colors.primary]}
+                start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                style={styles.button}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <View style={styles.buttonInner}>
+                    <Text style={styles.buttonText}>تسجيل الدخول</Text>
+                    <Ionicons name="arrow-back" size={18} color="#fff" />
+                  </View>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
 
             <View style={[styles.divider, { marginTop: 20 }]}>
@@ -230,10 +255,14 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { flexGrow: 1, justifyContent: 'center' },
   content: { paddingHorizontal: 24, paddingVertical: 24 },
-  header: { alignItems: 'center', marginBottom: 28 },
-  logoWrap: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  title: { fontSize: FONT.xl, fontWeight: '800' },
-  subtitle: { fontSize: FONT.sm, marginTop: 4 },
+  header: { alignItems: 'center', marginBottom: 30 },
+  logoWrap: {
+    width: 68, height: 68, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+    ...SHADOW.button,
+  },
+  title: { fontSize: 26, fontWeight: '800' },
+  subtitle: { fontSize: FONT.md, marginTop: 5, fontWeight: '600' },
   accountsSection: { marginBottom: 8 },
   accountsLabel: { fontSize: FONT.sm, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
   accountCard: {
@@ -248,13 +277,14 @@ const styles = StyleSheet.create({
   accountName: { fontSize: FONT.md, fontWeight: '600' },
   accountEmail: { fontSize: FONT.xs, marginTop: 1 },
   accountRemove: { padding: 4 },
-  form: { gap: 10 },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: RADIUS.md, paddingHorizontal: 12, borderWidth: 1, height: 48 },
-  input: { paddingVertical: 0, fontSize: FONT.md },
-  button: { borderRadius: RADIUS.md, padding: 14, alignItems: 'center', marginTop: 8 },
+  form: { gap: 12 },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.lg, paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, height: 52 },
+  input: { paddingVertical: 0, fontSize: FONT.md, fontWeight: '500' },
+  buttonWrap: { borderRadius: RADIUS.lg, marginTop: 10, ...SHADOW.button },
+  button: { borderRadius: RADIUS.lg, padding: 15, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },
-  buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  buttonText: { color: '#fff', fontSize: FONT.md, fontWeight: '700' },
+  buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  buttonText: { color: '#fff', fontSize: FONT.md, fontWeight: '800' },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 14 },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: 12, fontSize: FONT.sm },

@@ -1,65 +1,61 @@
+import { StyleSheet, type TextStyle } from 'react-native';
+
 export const LIGHT_COLORS = {
-  primary: '#2563eb',
-  primaryDark: '#1d4ed8',
+  primary: '#1d4ed8',
+  primaryDark: '#1e40af',
   primaryLight: '#dbeafe',
-  success: '#10b981',
+  primaryFaint: '#eff6ff',
+  success: '#047857',
   successLight: '#d1fae5',
-  warning: '#f59e0b',
+  successFaint: '#ecfdf5',
+  warning: '#b45309',
   warningLight: '#fef3c7',
-  danger: '#ef4444',
+  warningFaint: '#fffbeb',
+  danger: '#b91c1c',
   dangerLight: '#fee2e2',
-  info: '#06b6d4',
+  dangerFaint: '#fef2f2',
+  info: '#0e7490',
   infoLight: '#cffafe',
+  infoFaint: '#ecfeff',
   surface: '#ffffff',
-  background: '#f1f5f9',
+  background: '#f4f6fa',
   backgroundDark: '#0f172a',
   card: '#ffffff',
-  text: '#0f172a',
-  textSecondary: '#64748b',
-  textMuted: '#94a3b8',
-  border: '#e2e8f0',
-  borderLight: '#f1f5f9',
-  notification: '#ef4444',
-  gradientStart: '#2563eb',
-  gradientEnd: '#7c3aed',
-  successGradientStart: '#059669',
-  successGradientEnd: '#10b981',
-  warningGradientStart: '#d97706',
-  warningGradientEnd: '#f59e0b',
-  dangerGradientStart: '#dc2626',
-  dangerGradientEnd: '#ef4444',
+  text: '#111c2e',
+  textSecondary: '#475569',
+  textMuted: '#8a94a6',
+  border: '#e3e8f0',
+  borderLight: '#eef1f6',
+  notification: '#dc2626',
 };
 
 export const DARK_COLORS: typeof LIGHT_COLORS = {
-  primary: '#3b82f6',
-  primaryDark: '#2563eb',
-  primaryLight: '#1e3a5f',
+  primary: '#5b93ff',
+  primaryDark: '#3b82f6',
+  primaryLight: '#16294d',
+  primaryFaint: '#0f1f3d',
   success: '#34d399',
   successLight: '#064e3b',
+  successFaint: '#052e22',
   warning: '#fbbf24',
   warningLight: '#422006',
+  warningFaint: '#2e1f04',
   danger: '#f87171',
   dangerLight: '#450a0a',
+  dangerFaint: '#330b0b',
   info: '#22d3ee',
   infoLight: '#083344',
-  surface: '#0f172a',
-  background: '#020617',
+  infoFaint: '#062a33',
+  surface: '#101a2e',
+  background: '#0a1120',
   backgroundDark: '#020617',
-  card: '#1e293b',
-  text: '#f1f5f9',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
-  border: '#334155',
-  borderLight: '#1e293b',
+  card: '#101a2e',
+  text: '#eef2f9',
+  textSecondary: '#9aa7bd',
+  textMuted: '#64748f',
+  border: '#223047',
+  borderLight: '#182642',
   notification: '#ef4444',
-  gradientStart: '#3b82f6',
-  gradientEnd: '#8b5cf6',
-  successGradientStart: '#10b981',
-  successGradientEnd: '#34d399',
-  warningGradientStart: '#f59e0b',
-  warningGradientEnd: '#fbbf24',
-  dangerGradientStart: '#ef4444',
-  dangerGradientEnd: '#f87171',
 };
 
 export const COLORS = LIGHT_COLORS;
@@ -73,32 +69,47 @@ export const RADIUS = {
 };
 
 export const FONT = {
-  xs: 11, sm: 13, md: 15, lg: 17, xl: 20, xxl: 28, xxxl: 36,
+  xs: 11, sm: 13, md: 15, lg: 17, xl: 20, xxl: 26, xxxl: 34,
+};
+
+/**
+ * Arabic-safe weights: never use letterSpacing or uppercase transforms
+ * on Arabic text — they break letter connections. Numbers use tabular
+ * figures so prices don't jitter.
+ */
+export const TYPE: { tabularNumbers: TextStyle } = {
+  tabularNumbers: { fontVariant: ['tabular-nums'] },
 };
 
 export const SHADOW = {
   card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   button: {
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#1d4ed8',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22,
+    shadowRadius: 6,
+    elevation: 3,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#0f172a',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
 };
+
+/** Crisp 1px card outline — what makes cards read on Android. */
+export const cardBorder = (borderColor: string) => ({
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor,
+});
 
 export const STATUS_COLORS: Record<string, string> = {
   pending: LIGHT_COLORS.warning,

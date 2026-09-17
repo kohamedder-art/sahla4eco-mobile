@@ -41,6 +41,13 @@ export interface MobileOrder {
   source_platform_label?: string;
   delivery_type?: string;
   tracking_number?: string;
+  store_id?: number | null;
+  store_name?: string | null;
+}
+
+export interface StoreRef {
+  id: number;
+  name: string;
 }
 
 export interface OrderDetail extends MobileOrder {

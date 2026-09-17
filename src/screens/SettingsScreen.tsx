@@ -9,7 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useAppUpdate } from '../hooks/useAppUpdate';
 import Constants from 'expo-constants';
-import { RADIUS, FONT } from '../constants/theme';
+import { RADIUS, FONT, SHADOW } from '../constants/theme';
 
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
@@ -46,13 +46,13 @@ export function SettingsScreen({ navigation }: any) {
       <ScreenHeader title="المزيد" rightAction={
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {updateAvailable && (
-            <TouchableOpacity style={[styles.updateBadge, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={checkForUpdate}>
-              <Ionicons name="refresh" size={16} color="#fff" />
+            <TouchableOpacity style={[styles.updateBadge, { backgroundColor: colors.borderLight }]} onPress={checkForUpdate}>
+              <Ionicons name="refresh" size={16} color={colors.primary} />
               <Text style={styles.updateBadgeDot}>1</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={[styles.notifBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]} onPress={() => navigation.navigate('NotificationsTab')}>
-            <Ionicons name="notifications-outline" size={18} color="#fff" />
+          <TouchableOpacity style={[styles.notifBtn, { backgroundColor: colors.borderLight }]} onPress={() => navigation.navigate('NotificationsTab')}>
+            <Ionicons name="notifications-outline" size={19} color={colors.text} />
             {unreadCount > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.danger }]}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -63,7 +63,7 @@ export function SettingsScreen({ navigation }: any) {
       } />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
             <Text style={[styles.avatarText, { color: colors.primary }]}>
               {user?.name?.charAt(0) || '?'}
@@ -81,7 +81,7 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         </View>
 
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <TouchableOpacity
             style={[styles.settingRow, { borderBottomColor: colors.border }]}
             onPress={() => navigation.navigate('NotificationsTab')}
@@ -123,7 +123,7 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         </View>
 
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <TouchableOpacity
             style={[styles.settingRow, { borderBottomColor: colors.border }]}
             onPress={checkForUpdate}
@@ -175,15 +175,16 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     borderRadius: RADIUS.lg, padding: 16, marginBottom: 14,
+    borderWidth: StyleSheet.hairlineWidth, ...SHADOW.card,
   },
-  avatar: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: FONT.lg, fontWeight: '800' },
+  avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: FONT.xl, fontWeight: '800' },
   profileInfo: { flex: 1 },
   profileName: { fontSize: FONT.lg, fontWeight: '700' },
   profileEmail: { fontSize: FONT.sm, marginTop: 1 },
   storeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   storeName: { fontSize: FONT.xs },
-  section: { borderRadius: RADIUS.lg, marginBottom: 14, overflow: 'hidden' },
+  section: { borderRadius: RADIUS.lg, marginBottom: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth },
   settingRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 16, paddingVertical: 14,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   unreadBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   unreadText: { color: '#fff', fontSize: 9, fontWeight: '800' },
   updateBadge: {
-    width: 32, height: 32, borderRadius: 10,
+    width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center',
   },
   updateBadgeDot: {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444', overflow: 'hidden', lineHeight: 14, paddingHorizontal: 2,
   },
   notifBtn: {
-    width: 32, height: 32, borderRadius: 10,
+    width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center',
   },
   badge: {
