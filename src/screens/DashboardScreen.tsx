@@ -159,11 +159,11 @@ export function DashboardScreen({ navigation }: any) {
           </View>
           <View style={styles.heroDivider} />
           <TouchableOpacity
-            style={styles.heroCol}
+            style={[styles.heroCol, styles.heroPending]}
             onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: 'pending' } })}
             activeOpacity={0.7}
           >
-            <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(pendingCount || 0)}</Text>
+            <Text style={[styles.heroValue, TYPE.tabularNumbers, { color: '#fde68a' }]}>{String(pendingCount || 0)}</Text>
             <Text style={styles.heroLabel}>بانتظارك</Text>
           </TouchableOpacity>
         </View>
@@ -186,15 +186,15 @@ export function DashboardScreen({ navigation }: any) {
             ].map((c) => (
               <TouchableOpacity
                 key={c.key}
-                style={[styles.counter, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={[styles.counter, { backgroundColor: c.bg }]}
                 onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: c.key } })}
                 activeOpacity={0.75}
               >
-                <View style={[styles.counterIcon, { backgroundColor: c.bg }]}>
+                <View style={styles.counterTop}>
                   <Ionicons name={c.icon as any} size={18} color={c.fg} />
+                  <Text style={[styles.counterCount, TYPE.tabularNumbers, { color: c.fg }]}>{c.count}</Text>
                 </View>
-                <Text style={[styles.counterCount, TYPE.tabularNumbers, { color: colors.text }]}>{c.count}</Text>
-                <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>{c.label}</Text>
+                <Text style={[styles.counterLabel, { color: c.fg }]}>{c.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -208,7 +208,7 @@ export function DashboardScreen({ navigation }: any) {
               يحتاج تأكيدك ({pendingOrders.length})
             </Text>
             {pendingOrders.slice(0, 3).map((o: any) => (
-              <View key={o.id} style={[styles.actionRow, { backgroundColor: colors.card, borderColor: colors.warning + '55' }]}>
+              <View key={o.id} style={[styles.actionRow, { backgroundColor: colors.warningLight, borderColor: colors.warning + '60' }]}>
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionName, { color: colors.text }]} numberOfLines={1}>
                     {o.customer_name}
@@ -312,6 +312,7 @@ const styles = StyleSheet.create({
     ...SHADOW.card,
   },
   heroCol: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  heroPending: { backgroundColor: 'rgba(0,0,0,0.14)', borderRadius: RADIUS.lg, marginVertical: -6, paddingVertical: 6 },
   heroDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)', marginVertical: 2 },
   heroValue: { fontSize: 21, fontWeight: '800', color: '#fff' },
   heroLabel: { fontSize: FONT.sm, fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginTop: 4 },
@@ -319,11 +320,12 @@ const styles = StyleSheet.create({
   countersBleed: { marginHorizontal: -16 },
   counterIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   counter: {
-    width: 138, alignItems: 'center', paddingVertical: 14, gap: 6,
-    borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
+    width: 138, alignItems: 'center', paddingVertical: 14, gap: 7,
+    borderRadius: RADIUS.lg,
   },
+  counterTop: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   counterCount: { fontSize: FONT.xl, fontWeight: '800' },
-  counterLabel: { fontSize: FONT.xs, fontWeight: '600' },
+  counterLabel: { fontSize: FONT.xs, fontWeight: '700' },
   section: { marginTop: 20 },
   sectionTitle: { fontSize: FONT.lg, fontWeight: '800', marginBottom: 10 },
   dayLabel: { fontSize: FONT.xs, fontWeight: '700', marginTop: 4, marginBottom: 6 },

@@ -29,7 +29,7 @@ import { RADIUS, FONT, SHADOW } from '../constants/theme';
 const GOOGLE_OAUTH_URL = 'https://www.sahla4eco.com/api/oauth/google/url?client=mobile';
 
 export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
-  const { login, savedAccounts, removeAccount, silentLogin } = useAuth();
+  const { login, savedAccounts, removeAccount, silentLogin, loginOAuthToken } = useAuth();
   const { register } = useNotif();
   const colors = useColors();
   const [email, setEmail] = useState('');
@@ -91,11 +91,39 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      await WebBrowser.openAuthSessionAsync(GOOGLE_OAUTH_URL, 'sahla4eco://');
+      await WebBrowser.warmUpAsync().catch(() => {});
+      // Server redirects back to sahla4eco://auth?token=...&user=... (see oauth.ts).
+      // NOTE: custom schemes only return to real builds, NOT Expo Go.
+      const result = await WebBrowser.openAuthSessionAsync(GOOGLE_OAUTH_URL, 'sahla4eco://');
+      if (result.type === 'success' && result.url) {
+        const query = result.url.split('?')[1] || '';
+        const params: Record<string, string> = {};
+        for (const part of query.split('&')) {
+          const i = part.indexOf('=');
+          if (i > 0) {
+            try {
+              params[part.slice(0, i)] = decodeURIComponent(part.slice(i + 1));
+            } catch {}
+          }
+        }
+        if (params.token && params.user) {
+          try {
+            await loginOAuthToken(params.token, JSON.parse(params.user));
+            register().catch(() => {});
+            return;
+          } catch {
+            Alert.alert('خطأ', 'تعذر إتمام الدخول عبر Google');
+            return;
+          }
+        }
+        Alert.alert('خطأ', 'عاد Google بدون بيانات الدخول');
+      }
+      // cancel/dismiss/lockout → stay silent, user just closed the browser
     } catch (e: any) {
       Alert.alert('خطأ', e?.message || 'تعذر فتح شاشة Google');
     } finally {
       setGoogleLoading(false);
+      await WebBrowser.coolDownAsync().catch(() => {});
     }
   };
 
