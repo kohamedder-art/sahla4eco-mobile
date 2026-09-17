@@ -88,9 +88,9 @@ export function SettingsScreen({ navigation }: any) {
             onPress={() => navigation.navigate('NotificationsTab')}
           >
             <View style={styles.settingLeft}>
-              <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
-                <Ionicons name="notifications-outline" size={16} color={colors.primary} />
-              </View>
+              <Tile colors={[...GRADIENTS.primary]} size={34} radius={11}>
+                <Ionicons name="notifications-outline" size={17} color="#fff" />
+              </Tile>
               <Text style={[styles.settingLabel, { color: colors.text }]}>الإشعارات</Text>
             </View>
             <View style={styles.settingRight}>
@@ -105,9 +105,9 @@ export function SettingsScreen({ navigation }: any) {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconBox, { backgroundColor: colors.warningLight }]}>
-                <Ionicons name={isDark ? 'moon' : 'sunny'} size={16} color={colors.warning} />
-              </View>
+              <Tile colors={[...GRADIENTS.warning]} size={34} radius={11}>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={17} color="#fff" />
+              </Tile>
               <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الوضع الداكن</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>
@@ -131,9 +131,9 @@ export function SettingsScreen({ navigation }: any) {
             disabled={checkingUpdate}
           >
             <View style={styles.settingLeft}>
-              <View style={[styles.iconBox, { backgroundColor: colors.infoLight }]}>
-                <Ionicons name="refresh-outline" size={16} color={colors.info} />
-              </View>
+              <Tile colors={[...GRADIENTS.info]} size={34} radius={11}>
+                <Ionicons name="refresh-outline" size={17} color="#fff" />
+              </Tile>
               <Text style={[styles.settingLabel, { color: colors.text }]}>التحقق من التحديثات</Text>
             </View>
             <View style={styles.settingRight}>
@@ -147,9 +147,9 @@ export function SettingsScreen({ navigation }: any) {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconBox, { backgroundColor: colors.successLight }]}>
-                <Ionicons name="phone-portrait-outline" size={16} color={colors.success} />
-              </View>
+              <Tile colors={[...GRADIENTS.success]} size={34} radius={11}>
+                <Ionicons name="phone-portrait-outline" size={17} color="#fff" />
+              </Tile>
               <View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>الإصدار</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>Build {CURRENT_BUILD}</Text>

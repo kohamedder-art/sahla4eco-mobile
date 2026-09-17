@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { GRADIENTS, FONT } from '../constants/theme';
@@ -18,11 +17,12 @@ interface Props {
 
 export function ScreenHeader({ title, subtitle, onBackPress, onNotificationPress, rightAction }: Props) {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { unreadCount } = useNotif();
 
+  // NOTE: App.tsx root SafeAreaView already pads the status bar — do NOT add
+  // insets.top here or the header gets a double gap.
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top }]}>
+    <View style={styles.wrap}>
       <LinearGradient
         colors={[...GRADIENTS.header]}
         start={{ x: 0, y: 0 }}

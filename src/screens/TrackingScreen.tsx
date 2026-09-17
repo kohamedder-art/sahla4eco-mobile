@@ -17,7 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { RADIUS, FONT, SHADOW, STATUS_COLORS } from '../constants/theme';
+import { RADIUS, FONT, SHADOW, STATUS_COLORS, GRADIENTS, TYPE } from '../constants/theme';
+import { Tile } from '../components/Gloss';
 import { formatCurrency, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 import type { MobileOrder } from '../types';
@@ -234,18 +235,20 @@ export function TrackingScreen({ navigation }: any) {
           const isBad = step === -1;
           return (
             <TouchableOpacity
-              style={[styles.orderCard, { backgroundColor: colors.card }]}
+              style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]}
               onPress={() => navigation.navigate('OrderDetail', { id: item.id })}
               activeOpacity={0.7}
             >
+              <View style={[styles.rail, { backgroundColor: sc }]} />
+              <View style={styles.cardBody}>
               {/* Top row: customer + price */}
               <View style={styles.cardTop}>
                 <View style={styles.cardLeft}>
-                  <View style={[styles.avatar, { backgroundColor: sc + '15' }]}>
-                    <Text style={[styles.avatarText, { color: sc }]}>
+                  <Tile colors={isBad ? [...GRADIENTS.danger] : sc === colors.success ? [...GRADIENTS.success] : sc === colors.warning ? [...GRADIENTS.warning] : [...GRADIENTS.primary]} size={42} radius={14}>
+                    <Text style={styles.avatarText}>
                       {item.customer_name?.charAt(0) || '?'}
                     </Text>
-                  </View>
+                  </Tile>
                   <View style={styles.cardInfo}>
                     <Text style={[styles.customerName, { color: colors.text }]} numberOfLines={1}>
                       {item.customer_name}
@@ -284,16 +287,17 @@ export function TrackingScreen({ navigation }: any) {
                   <View style={[styles.statusDot, { backgroundColor: sc }]} />
                   <Text style={[styles.statusText, { color: sc }]}>{getStatusLabel(item.status)}</Text>
                 </View>
-                <Text style={[styles.orderId, { color: colors.textMuted }]}>#{item.id}</Text>
+                <Text style={[styles.orderId, TYPE.tabularNumbers, { color: colors.textMuted }]}>#{item.id}</Text>
+              </View>
               </View>
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <View style={[styles.emptyIconWrap, { backgroundColor: colors.primaryLight }]}>
-              <Ionicons name={search ? 'search-outline' : 'car-outline'} size={28} color={colors.primary} />
-            </View>
+            <Tile colors={[...GRADIENTS.primary]} size={60} radius={20}>
+              <Ionicons name={search ? 'search-outline' : 'car-outline'} size={26} color="#fff" />
+            </Tile>
             <Text style={[styles.emptyText, { color: colors.text }]}>
               {search ? 'لا توجد نتائج بحث' : 'لا توجد شحنات للتتبع'}
             </Text>
@@ -331,15 +335,19 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, paddingVertical: 0, fontSize: FONT.sm },
   orderCard: {
+    flexDirection: 'row',
     marginHorizontal: 16, marginBottom: 10, borderRadius: RADIUS.lg,
-    padding: 14, ...SHADOW.card,
+    padding: 13, paddingLeft: 9, gap: 0,
+    borderWidth: StyleSheet.hairlineWidth,
+    ...SHADOW.card,
   },
+  rail: { width: 4, alignSelf: 'stretch', borderRadius: 2, marginRight: 10 },
+  cardBody: { flex: 1 },
   cardTop: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8,
   },
-  cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 },
-  avatar: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
-  avatarText: { fontSize: FONT.sm, fontWeight: '800' },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8, gap: 10 },
+  avatarText: { fontSize: FONT.md, fontWeight: '800', color: '#fff' },
   cardInfo: { flex: 1 },
   customerName: { fontSize: FONT.md, fontWeight: '700' },
   productName: { fontSize: FONT.xs, marginTop: 1 },
@@ -377,8 +385,7 @@ const styles = StyleSheet.create({
   statusDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
   statusText: { fontSize: 9, fontWeight: '600' },
   orderId: { fontSize: 10, fontWeight: '500' },
-  emptyState: { alignItems: 'center', paddingVertical: 60 },
-  emptyIconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  emptyText: { fontSize: FONT.md, fontWeight: '700' },
-  emptyHint: { fontSize: FONT.sm, marginTop: 2 },
+  emptyState: { alignItems: 'center', paddingVertical: 60, gap: 4 },
+  emptyText: { fontSize: FONT.lg, fontWeight: '800', marginTop: 12 },
+  emptyHint: { fontSize: FONT.sm, marginTop: 4 },
 });

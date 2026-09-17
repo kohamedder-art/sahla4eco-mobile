@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Gloss, Tile } from '../components/Gloss';
@@ -23,6 +24,14 @@ const FILTER_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']
   confirmed: 'checkmark-circle-outline',
   delivered: 'bag-check-outline',
   cancelled: 'close-circle-outline',
+};
+
+const FILTER_GRADS: Record<string, [string, string]> = {
+  all: [...GRADIENTS.primary],
+  pending: [...GRADIENTS.warning],
+  confirmed: [...GRADIENTS.info],
+  delivered: [...GRADIENTS.success],
+  cancelled: [...GRADIENTS.danger],
 };
 
 export function OrdersScreen({ navigation, route }: any) {
@@ -226,6 +235,7 @@ export function OrdersScreen({ navigation, route }: any) {
           renderItem={({ item: f }) => {
             const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
             const active = activeFilter === f;
+            const grad = FILTER_GRADS[f] || FILTER_GRADS.all;
             return (
               <TouchableOpacity
                 style={[styles.chip, active && { borderWidth: 0 }]}
@@ -233,18 +243,22 @@ export function OrdersScreen({ navigation, route }: any) {
                 activeOpacity={0.8}
               >
                 {active ? (
-                  <View style={[styles.chipGrad, { backgroundColor: colors.primary }]}>
-                    <Gloss radius={RADIUS.full} height="50%" />
+                  <LinearGradient
+                    colors={grad}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={styles.chipGrad}
+                  >
+                    <Gloss radius={RADIUS.full} height="55%" />
                     <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={13} color="#fff" />
                     <Text style={[styles.chipText, { color: '#fff' }]}>
                       {getStatusLabel(f === 'all' ? 'الكل' : f)}
                     </Text>
                     {count > 0 && (
                       <View style={styles.chipCountSolid}>
-                        <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: colors.primary }]}>{count}</Text>
+                        <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: grad[0] }]}>{count}</Text>
                       </View>
                     )}
-                  </View>
+                  </LinearGradient>
                 ) : (
                   <View style={[styles.chipGhost, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={13} color={colors.textSecondary} />
@@ -277,6 +291,7 @@ export function OrdersScreen({ navigation, route }: any) {
               onPress={() => navigation.navigate('OrderDetail', { id: item.id })}
               activeOpacity={0.7}
             >
+              <View style={[styles.rail, { backgroundColor: sc }]} />
               <Tile colors={getStatusGrad(item.status)} size={46} radius={15}>
                 <Text style={styles.avatarText}>
                   {item.customer_name?.charAt(0) || '?'}
@@ -393,10 +408,11 @@ const styles = StyleSheet.create({
   orderCard: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: 16, marginBottom: 9,
-    padding: 13, borderRadius: RADIUS.lg, gap: 11,
+    padding: 13, paddingLeft: 9, borderRadius: RADIUS.lg, gap: 11,
     borderWidth: StyleSheet.hairlineWidth,
     ...SHADOW.card,
   },
+  rail: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
   avatarText: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
   orderInfo: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

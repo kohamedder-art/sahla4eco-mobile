@@ -148,7 +148,7 @@ export function DashboardScreen({ navigation }: any) {
       />
 
       <View style={styles.content}>
-        {/* TODAY hero */}
+        {/* TODAY hero — overlaps the header curve */}
         <LinearGradient
           colors={[...GRADIENTS.header]}
           start={{ x: 0, y: 0 }}
@@ -178,9 +178,16 @@ export function DashboardScreen({ navigation }: any) {
           </TouchableOpacity>
         </LinearGradient>
 
-        {/* Status counters */}
+        {/* Status counters — full-bleed snap carousel */}
         {stats && (
-          <View style={styles.counters}>
+          <View style={styles.countersBleed}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.counters}
+            snapToInterval={148}
+            decelerationRate="fast"
+          >
             {[
               { key: 'pending', label: 'معلق', count: stats.pending_count || 0, colors: [...GRADIENTS.warning] as [string, string], icon: 'time-outline' },
               { key: 'confirmed', label: 'مؤكد', count: stats.confirmed_count || 0, colors: [...GRADIENTS.primary] as [string, string], icon: 'checkmark-circle-outline' },
@@ -193,13 +200,14 @@ export function DashboardScreen({ navigation }: any) {
                 onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: c.key } })}
                 activeOpacity={0.75}
               >
-                <Tile colors={c.colors} size={34} radius={11}>
-                  <Ionicons name={c.icon as any} size={17} color="#fff" />
+                <Tile colors={c.colors} size={36} radius={12}>
+                  <Ionicons name={c.icon as any} size={18} color="#fff" />
                 </Tile>
                 <Text style={[styles.counterCount, TYPE.tabularNumbers, { color: colors.text }]}>{c.count}</Text>
                 <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>{c.label}</Text>
               </TouchableOpacity>
             ))}
+          </ScrollView>
           </View>
         )}
 
@@ -255,8 +263,9 @@ export function DashboardScreen({ navigation }: any) {
                       onPress={() => goDetail(o.id)}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.avatar, { backgroundColor: sc + '16' }]}>
-                        <Text style={[styles.avatarText, { color: sc }]}>
+                      <View style={[styles.rail, { backgroundColor: sc }]} />
+                      <View style={[styles.avatar, { backgroundColor: colors.borderLight }]}>
+                        <Text style={[styles.avatarText, { color: colors.textSecondary }]}>
                           {o.customer_name?.charAt(0) || '?'}
                         </Text>
                       </View>
@@ -300,12 +309,14 @@ export function DashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 32 },
-  content: { paddingHorizontal: 16, paddingTop: 12 },
+  scrollContent: { paddingBottom: 120 },
+  content: { paddingHorizontal: 16, paddingTop: 0 },
   hero: {
     flexDirection: 'row', alignItems: 'stretch',
     borderRadius: RADIUS.xl, paddingVertical: 18,
     overflow: 'hidden',
+    marginTop: -22,
+    zIndex: 5,
     ...SHADOW.button,
   },
   heroCol: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -317,12 +328,13 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
     borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 2,
   },
-  counters: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  counters: { gap: 10, paddingHorizontal: 16, paddingTop: 14 },
+  countersBleed: { marginHorizontal: -16 },
   counter: {
-    flex: 1, alignItems: 'center', paddingVertical: 12, gap: 5,
+    width: 138, alignItems: 'center', paddingVertical: 14, gap: 6,
     borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
   },
-  counterCount: { fontSize: FONT.lg, fontWeight: '800' },
+  counterCount: { fontSize: FONT.xl, fontWeight: '800' },
   counterLabel: { fontSize: FONT.xs, fontWeight: '600' },
   section: { marginTop: 20 },
   sectionTitle: { fontSize: FONT.lg, fontWeight: '800', marginBottom: 10 },
@@ -337,9 +349,11 @@ const styles = StyleSheet.create({
   actionMeta: { fontSize: FONT.xs, marginTop: 2 },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    marginBottom: 8, padding: 12,
+    marginBottom: 8, padding: 12, paddingLeft: 8,
     borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
   },
+  rail: { width: 4, alignSelf: 'stretch', borderRadius: 2, marginRight: 10 },
   avatar: {
     width: 46, height: 46, borderRadius: 23,
     alignItems: 'center', justifyContent: 'center', marginRight: 11,
