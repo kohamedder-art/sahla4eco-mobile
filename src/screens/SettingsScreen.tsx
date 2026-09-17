@@ -9,7 +9,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useAppUpdate } from '../hooks/useAppUpdate';
 import Constants from 'expo-constants';
-import { RADIUS, FONT, SHADOW } from '../constants/theme';
+import { RADIUS, FONT, SHADOW, GRADIENTS } from '../constants/theme';
+import { Tile } from '../components/Gloss';
 
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
@@ -64,11 +65,11 @@ export function SettingsScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>
+          <Tile colors={[...GRADIENTS.primary]} size={50} radius={16}>
+            <Text style={styles.avatarText}>
               {user?.name?.charAt(0) || '?'}
             </Text>
-          </View>
+          </Tile>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name || 'المالك'}</Text>
             <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email || ''}</Text>
@@ -177,8 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg, padding: 16, marginBottom: 14,
     borderWidth: StyleSheet.hairlineWidth, ...SHADOW.card,
   },
-  avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: FONT.xl, fontWeight: '800' },
+  avatarText: { fontSize: FONT.xl, fontWeight: '800', color: '#fff' },
   profileInfo: { flex: 1 },
   profileName: { fontSize: FONT.lg, fontWeight: '700' },
   profileEmail: { fontSize: FONT.sm, marginTop: 1 },

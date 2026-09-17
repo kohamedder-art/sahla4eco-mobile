@@ -111,6 +111,17 @@ export const cardBorder = (borderColor: string) => ({
   borderColor,
 });
 
+export const GRADIENTS = {
+  header: ['#1e3a8a', '#2563eb', '#3b82f6'] as const,
+  primary: ['#1d4ed8', '#3b82f6'] as const,
+  success: ['#047857', '#10b981'] as const,
+  warning: ['#b45309', '#f59e0b'] as const,
+  danger: ['#b91c1c', '#ef4444'] as const,
+  info: ['#0e7490', '#06b6d4'] as const,
+  violet: ['#6d28d9', '#8b5cf6'] as const,
+  gloss: ['rgba(255,255,255,0.32)', 'rgba(255,255,255,0)'] as const,
+};
+
 export const STATUS_COLORS: Record<string, string> = {
   pending: LIGHT_COLORS.warning,
   confirmed: LIGHT_COLORS.primary,

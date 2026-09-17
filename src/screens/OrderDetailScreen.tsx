@@ -15,7 +15,10 @@ import {
   Linking, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { GRADIENTS } from '../constants/theme';
+import { Gloss, GlossButton, Tile } from '../components/Gloss';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
@@ -86,11 +89,11 @@ export function OrderDetailScreen({ navigation, route }: any) {
     }
   };
 
-  const statusColor = !order
-    ? colors.primary
-    : order.status === 'delivered' || order.status === 'confirmed' ? colors.success :
-      order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? colors.danger :
-      order.status === 'pending' ? colors.warning : colors.primary;
+  const statusGrad: [string, string] = !order
+    ? [...GRADIENTS.primary]
+    : order.status === 'delivered' || order.status === 'confirmed' ? [...GRADIENTS.success] :
+      order.status === 'cancelled' || order.status === 'returned' || order.status === 'fake' ? [...GRADIENTS.danger] :
+      order.status === 'pending' ? [...GRADIENTS.warning] : [...GRADIENTS.primary];
 
   const statusActions: { label: string; status: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [];
   if (order?.status === 'pending') {
@@ -115,23 +118,28 @@ export function OrderDetailScreen({ navigation, route }: any) {
       ) : (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Status Banner */}
-      <View style={[styles.statusBanner, { backgroundColor: statusColor + '14', borderColor: statusColor + '40' }]}>
-        <View style={[styles.statusIconWrap, { backgroundColor: statusColor }]}>
+      <LinearGradient
+        colors={statusGrad}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={styles.statusBanner}
+      >
+        <Gloss radius={RADIUS.lg} />
+        <View style={styles.statusGlassIcon}>
           <Ionicons
             name={order.status === 'delivered' ? 'checkmark' : order.status === 'cancelled' ? 'close' : 'time-outline'}
-            size={15} color="#fff"
+            size={17} color="#fff"
           />
         </View>
         <View style={styles.statusTexts}>
-          <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel(order.status)}</Text>
-          <Text style={[styles.statusSub, TYPE.tabularNumbers, { color: colors.textSecondary }]}>طلب #{order.id}</Text>
+          <Text style={styles.statusText}>{getStatusLabel(order.status)}</Text>
+          <Text style={[styles.statusSub, TYPE.tabularNumbers]}>طلب #{order.id}</Text>
         </View>
         {order.store_name ? (
-          <View style={[styles.storeBadge, { backgroundColor: colors.primaryFaint }]}>
-            <Text style={[styles.storeBadgeText, { color: colors.primary }]}>{order.store_name}</Text>
+          <View style={styles.storeGlassBadge}>
+            <Text style={styles.storeBadgeText}>{order.store_name}</Text>
           </View>
         ) : null}
-      </View>
+      </LinearGradient>
 
       {/* Customer Card */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -229,7 +237,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
           {order.timeline.map((t: any, i: number) => (
             <View key={i} style={styles.timelineItem}>
               <View style={styles.timelineLeft}>
-                <View style={[styles.timelineDot, { backgroundColor: t.active ? statusColor : colors.border }]} />
+                <View style={[styles.timelineDot, { backgroundColor: t.active ? statusGrad[0] : colors.border }]} />
                 {i < order.timeline.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
               </View>
               <View style={styles.timelineContent}>
@@ -247,35 +255,41 @@ export function OrderDetailScreen({ navigation, route }: any) {
       {statusActions.length > 0 && (
         <View style={styles.actions}>
           {statusActions.map((a) => (
-            <TouchableOpacity
-              key={a.status}
-              style={[styles.actionBtn, { backgroundColor: a.color }]}
-              onPress={() => updateStatus(a.status)}
-              disabled={updating}
-            >
+            <View key={a.status} style={{ flex: 1 }}>
               {updating ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <View style={[styles.actionBtnFallback, { backgroundColor: a.color }]}>
+                  <ActivityIndicator color="#fff" size="small" />
+                </View>
               ) : (
-                <>
-                  <Ionicons name={a.icon} size={16} color="#fff" />
-                  <Text style={styles.actionBtnText}>{a.label}</Text>
-                </>
+                <GlossButton
+                  colors={a.status === 'confirmed' ? [...GRADIENTS.success] : [...GRADIENTS.danger]}
+                  label={a.label}
+                  onPress={() => updateStatus(a.status)}
+                  icon={<Ionicons name={a.icon} size={16} color="#fff" />}
+                  style={{ flex: 1 }}
+                />
               )}
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
 
       {/* Customer Contact */}
       <View style={styles.contactRow}>
-        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.success }]} onPress={whatsappCustomer}>
-          <Ionicons name="logo-whatsapp" size={16} color="#fff" />
-          <Text style={styles.contactLabel}>واتساب</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.primary }]} onPress={callCustomer}>
-          <Ionicons name="call" size={16} color="#fff" />
-          <Text style={styles.contactLabel}>اتصال</Text>
-        </TouchableOpacity>
+        <GlossButton
+          colors={[...GRADIENTS.success]}
+          label="واتساب"
+          onPress={whatsappCustomer}
+          icon={<Ionicons name="logo-whatsapp" size={16} color="#fff" />}
+          style={{ flex: 1 }}
+        />
+        <GlossButton
+          colors={[...GRADIENTS.primary]}
+          label="اتصال"
+          onPress={callCustomer}
+          icon={<Ionicons name="call" size={16} color="#fff" />}
+          style={{ flex: 1 }}
+        />
       </View>
       </ScrollView>
       )}
@@ -289,15 +303,25 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   statusBanner: {
     flexDirection: 'row', alignItems: 'center',
-    padding: 14, borderRadius: RADIUS.lg, marginBottom: 12, gap: 10,
-    borderWidth: 1,
+    padding: 15, borderRadius: RADIUS.lg, marginBottom: 12, gap: 11,
+    overflow: 'hidden',
+    ...SHADOW.button,
   },
-  statusIconWrap: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  statusGlassIcon: {
+    width: 38, height: 38, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+  },
   statusTexts: { flex: 1 },
-  statusText: { fontSize: FONT.md, fontWeight: '800' },
-  statusSub: { fontSize: FONT.xs, fontWeight: '600', marginTop: 1 },
-  storeBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: RADIUS.full },
-  storeBadgeText: { fontSize: FONT.xs, fontWeight: '800' },
+  statusText: { fontSize: FONT.lg, fontWeight: '800', color: '#fff' },
+  statusSub: { fontSize: FONT.xs, fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  storeGlassBadge: {
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+  },
+  storeBadgeText: { fontSize: FONT.xs, fontWeight: '800', color: '#fff' },
   card: {
     borderRadius: RADIUS.lg, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth,
@@ -327,15 +351,8 @@ const styles = StyleSheet.create({
   timelineLabel: { fontSize: FONT.sm },
   timelineTime: { fontSize: FONT.xs, marginTop: 2 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 10 },
-  actionBtn: {
-    flex: 1, padding: 12, borderRadius: RADIUS.lg, alignItems: 'center',
-    flexDirection: 'row', justifyContent: 'center', gap: 6,
+  actionBtnFallback: {
+    padding: 12, borderRadius: RADIUS.lg, alignItems: 'center',
   },
-  actionBtnText: { color: '#fff', fontSize: FONT.md, fontWeight: '700' },
   contactRow: { flexDirection: 'row', gap: 8 },
-  contactBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, padding: 12, borderRadius: RADIUS.lg,
-  },
-  contactLabel: { color: '#fff', fontSize: FONT.md, fontWeight: '700' },
 });

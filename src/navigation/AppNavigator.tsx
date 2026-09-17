@@ -28,6 +28,8 @@ import { OrderDetailScreen } from '../screens/OrderDetailScreen';
 import { TrackingScreen } from '../screens/TrackingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { Tile } from '../components/Gloss';
+import { GRADIENTS } from '../constants/theme';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
 
@@ -48,7 +50,14 @@ function OrdersStackScreen() {
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 function TabIcon({ name, focused, color }: { name: IoniconsName; focused: boolean; color: string }) {
-  return <Ionicons name={name} size={22} color={color} />;
+  if (focused) {
+    return (
+      <Tile colors={[...GRADIENTS.primary]} size={34} radius={11}>
+        <Ionicons name={name} size={19} color="#fff" />
+      </Tile>
+    );
+  }
+  return <Ionicons name={name} size={23} color={color} />;
 }
 
 export function AppNavigator() {

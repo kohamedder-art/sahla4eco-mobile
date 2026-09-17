@@ -5,11 +5,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { Gloss, GlossButton, Tile } from '../components/Gloss';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
-import { RADIUS, FONT, TYPE } from '../constants/theme';
+import { RADIUS, FONT, TYPE, GRADIENTS, SHADOW } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 
@@ -92,7 +94,6 @@ export function DashboardScreen({ navigation }: any) {
   const pendingOrders = recentOrders.filter((o) => o && o.status === 'pending');
   const pendingCount = stats?.pending_count ?? pendingOrders.length;
 
-  // Group recent orders by day for section headers
   const groups: { label: string; items: any[] }[] = [];
   for (const o of recentOrders.slice(0, 8)) {
     if (!o) continue;
@@ -113,16 +114,16 @@ export function DashboardScreen({ navigation }: any) {
           <View style={[styles.hero, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.heroCol}>
-                <View style={[styles.skel, { backgroundColor: colors.border, width: '70%', height: 22, borderRadius: 6 }]} />
-                <View style={[styles.skel, { backgroundColor: colors.border, width: '50%', height: 11, borderRadius: 4, marginTop: 8 }]} />
+                <View style={[styles.skel, { backgroundColor: colors.border, width: '70%', height: 24, borderRadius: 6 }]} />
+                <View style={[styles.skel, { backgroundColor: colors.border, width: '50%', height: 12, borderRadius: 4, marginTop: 8 }]} />
               </View>
             ))}
           </View>
           {[0, 1, 2].map((i) => (
             <View key={i} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.skel, { backgroundColor: colors.border, width: 44, height: 44, borderRadius: 22 }]} />
+              <View style={[styles.skel, { backgroundColor: colors.border, width: 46, height: 46, borderRadius: 23 }]} />
               <View style={{ flex: 1 }}>
-                <View style={[styles.skel, { backgroundColor: colors.border, width: '55%', height: 13, borderRadius: 4 }]} />
+                <View style={[styles.skel, { backgroundColor: colors.border, width: '55%', height: 14, borderRadius: 4 }]} />
                 <View style={[styles.skel, { backgroundColor: colors.border, width: '75%', height: 11, borderRadius: 4, marginTop: 6 }]} />
               </View>
             </View>
@@ -147,33 +148,60 @@ export function DashboardScreen({ navigation }: any) {
       />
 
       <View style={styles.content}>
-        {/* TODAY hero: one card, three columns */}
-        <View style={[styles.hero, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.heroCol]}>
-            <Text style={[styles.heroValue, TYPE.tabularNumbers, { color: colors.success }]}>
-              {formatCurrency(stats?.today_revenue || 0)}
-            </Text>
-            <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>إيرادات اليوم</Text>
-          </View>
-          <View style={[styles.heroDivider, { backgroundColor: colors.border }]} />
+        {/* TODAY hero */}
+        <LinearGradient
+          colors={[...GRADIENTS.header]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
+          <Gloss radius={RADIUS.xl} />
           <View style={styles.heroCol}>
-            <Text style={[styles.heroValue, TYPE.tabularNumbers, { color: colors.primary }]}>
-              {String(stats?.today_orders || 0)}
-            </Text>
-            <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>طلبات اليوم</Text>
+            <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{formatCurrency(stats?.today_revenue || 0)}</Text>
+            <Text style={styles.heroLabel}>إيرادات اليوم</Text>
           </View>
-          <View style={[styles.heroDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.heroDivider} />
+          <View style={styles.heroCol}>
+            <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(stats?.today_orders || 0)}</Text>
+            <Text style={styles.heroLabel}>طلبات اليوم</Text>
+          </View>
+          <View style={styles.heroDivider} />
           <TouchableOpacity
             style={styles.heroCol}
             onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: 'pending' } })}
             activeOpacity={0.7}
           >
-            <Text style={[styles.heroValue, TYPE.tabularNumbers, { color: pendingCount > 0 ? colors.warning : colors.text }]}>
-              {String(pendingCount || 0)}
-            </Text>
-            <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>بانتظارك</Text>
+            <View style={styles.pendingPill}>
+              <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(pendingCount || 0)}</Text>
+            </View>
+            <Text style={styles.heroLabel}>بانتظارك</Text>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
+
+        {/* Status counters */}
+        {stats && (
+          <View style={styles.counters}>
+            {[
+              { key: 'pending', label: 'معلق', count: stats.pending_count || 0, colors: [...GRADIENTS.warning] as [string, string], icon: 'time-outline' },
+              { key: 'confirmed', label: 'مؤكد', count: stats.confirmed_count || 0, colors: [...GRADIENTS.primary] as [string, string], icon: 'checkmark-circle-outline' },
+              { key: 'delivered', label: 'تم', count: stats.delivered_count || 0, colors: [...GRADIENTS.success] as [string, string], icon: 'bag-check-outline' },
+              { key: 'cancelled', label: 'ملغي', count: stats.cancelled_count || 0, colors: [...GRADIENTS.danger] as [string, string], icon: 'close-circle-outline' },
+            ].map((c) => (
+              <TouchableOpacity
+                key={c.key}
+                style={[styles.counter, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => navigation.navigate('OrdersTab', { screen: 'Orders', params: { status: c.key } })}
+                activeOpacity={0.75}
+              >
+                <Tile colors={c.colors} size={34} radius={11}>
+                  <Ionicons name={c.icon as any} size={17} color="#fff" />
+                </Tile>
+                <Text style={[styles.counterCount, TYPE.tabularNumbers, { color: colors.text }]}>{c.count}</Text>
+                <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>{c.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Action queue */}
         {pendingOrders.length > 0 && (
@@ -182,27 +210,22 @@ export function DashboardScreen({ navigation }: any) {
               يحتاج تأكيدك ({pendingOrders.length})
             </Text>
             {pendingOrders.slice(0, 3).map((o: any) => (
-              <View key={o.id} style={[styles.actionRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <TouchableOpacity style={styles.actionInfo} onPress={() => goDetail(o.id)} activeOpacity={0.7}>
+              <View key={o.id} style={[styles.actionRow, { backgroundColor: colors.card, borderColor: colors.warning + '55' }]}>
+                <View style={styles.actionInfo}>
                   <Text style={[styles.actionName, { color: colors.text }]} numberOfLines={1}>
                     {o.customer_name}
                   </Text>
                   <Text style={[styles.actionMeta, TYPE.tabularNumbers, { color: colors.textSecondary }]} numberOfLines={1}>
-                    {formatCurrency(o.total_price)} · {formatTimeAgo(o.created_at)}
+                    #{o.id} · {formatCurrency(o.total_price)} · {formatTimeAgo(o.created_at)}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.confirmBtn, { backgroundColor: colors.success }]}
+                </View>
+                <GlossButton
+                  colors={[...GRADIENTS.success]}
+                  label="تأكيد"
                   onPress={() => quickConfirm(o.id)}
                   disabled={confirmingId === o.id}
-                  activeOpacity={0.85}
-                >
-                  {confirmingId === o.id ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <Text style={styles.confirmText}>تأكيد</Text>
-                  )}
-                </TouchableOpacity>
+                  style={{ minWidth: 92 }}
+                />
               </View>
             ))}
           </View>
@@ -213,7 +236,9 @@ export function DashboardScreen({ navigation }: any) {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>أحدث الطلبات</Text>
           {recentOrders.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="bag-outline" size={30} color={colors.textMuted} />
+              <Tile colors={[...GRADIENTS.primary]} size={56} radius={18}>
+                <Ionicons name="bag-outline" size={26} color="#fff" />
+              </Tile>
               <Text style={[styles.emptyText, { color: colors.text }]}>لا توجد طلبات بعد</Text>
               <Text style={[styles.emptyHint, { color: colors.textMuted }]}>أول طلب يوصلك راح يظهر هنا مباشرة</Text>
             </View>
@@ -230,8 +255,8 @@ export function DashboardScreen({ navigation }: any) {
                       onPress={() => goDetail(o.id)}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.avatar, { backgroundColor: colors.borderLight }]}>
-                        <Text style={[styles.avatarText, { color: colors.textSecondary }]}>
+                      <View style={[styles.avatar, { backgroundColor: sc + '16' }]}>
+                        <Text style={[styles.avatarText, { color: sc }]}>
                           {o.customer_name?.charAt(0) || '?'}
                         </Text>
                       </View>
@@ -247,7 +272,10 @@ export function DashboardScreen({ navigation }: any) {
                         <Text style={[styles.rowAmount, TYPE.tabularNumbers, { color: colors.text }]}>
                           {formatCurrency(o.total_price)}
                         </Text>
-                        <Text style={[styles.rowStatus, { color: sc }]}>{getStatusLabel(o.status)}</Text>
+                        <View style={[styles.statusPill, { backgroundColor: sc + '16' }]}>
+                          <View style={[styles.statusDot, { backgroundColor: sc }]} />
+                          <Text style={[styles.rowStatus, { color: sc }]}>{getStatusLabel(o.status)}</Text>
+                        </View>
                       </View>
                     </TouchableOpacity>
                   );
@@ -262,7 +290,8 @@ export function DashboardScreen({ navigation }: any) {
           onPress={() => navigation.navigate('OrdersTab')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.allBtnText, { color: colors.text }]}>عرض كل الطلبات</Text>
+          <Text style={[styles.allBtnText, { color: colors.primary }]}>عرض كل الطلبات</Text>
+          <Ionicons name="arrow-back" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -272,52 +301,65 @@ export function DashboardScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingBottom: 32 },
-  content: { paddingHorizontal: 16, paddingTop: 6 },
+  content: { paddingHorizontal: 16, paddingTop: 12 },
   hero: {
     flexDirection: 'row', alignItems: 'stretch',
-    borderRadius: RADIUS.lg, paddingVertical: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.xl, paddingVertical: 18,
+    overflow: 'hidden',
+    ...SHADOW.button,
   },
   heroCol: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  heroDivider: { width: StyleSheet.hairlineWidth, marginVertical: 2 },
-  heroValue: { fontSize: 20, fontWeight: '700' },
-  heroLabel: { fontSize: FONT.sm, fontWeight: '400', marginTop: 4 },
+  heroDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)', marginVertical: 2 },
+  heroValue: { fontSize: 21, fontWeight: '800', color: '#fff' },
+  heroLabel: { fontSize: FONT.sm, fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginTop: 4 },
+  pendingPill: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+    borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 2,
+  },
+  counters: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  counter: {
+    flex: 1, alignItems: 'center', paddingVertical: 12, gap: 5,
+    borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
+  },
+  counterCount: { fontSize: FONT.lg, fontWeight: '800' },
+  counterLabel: { fontSize: FONT.xs, fontWeight: '600' },
   section: { marginTop: 20 },
-  sectionTitle: { fontSize: FONT.lg, fontWeight: '700', marginBottom: 10 },
-  dayLabel: { fontSize: FONT.xs, fontWeight: '600', marginTop: 6, marginBottom: 6 },
+  sectionTitle: { fontSize: FONT.lg, fontWeight: '800', marginBottom: 10 },
+  dayLabel: { fontSize: FONT.xs, fontWeight: '700', marginTop: 4, marginBottom: 6 },
   actionRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     padding: 13, borderRadius: RADIUS.lg, marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
   },
   actionInfo: { flex: 1 },
-  actionName: { fontSize: FONT.md, fontWeight: '600' },
+  actionName: { fontSize: FONT.md, fontWeight: '700' },
   actionMeta: { fontSize: FONT.xs, marginTop: 2 },
-  confirmBtn: { paddingHorizontal: 22, paddingVertical: 10, borderRadius: RADIUS.md },
-  confirmText: { color: '#fff', fontSize: FONT.sm, fontWeight: '700' },
   row: {
     flexDirection: 'row', alignItems: 'center',
     marginBottom: 8, padding: 12,
     borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
   },
   avatar: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 46, height: 46, borderRadius: 23,
     alignItems: 'center', justifyContent: 'center', marginRight: 11,
   },
-  avatarText: { fontSize: FONT.lg, fontWeight: '700' },
+  avatarText: { fontSize: FONT.lg, fontWeight: '800' },
   rowInfo: { flex: 1, marginRight: 8 },
-  rowName: { fontSize: FONT.md, fontWeight: '600' },
+  rowName: { fontSize: FONT.md, fontWeight: '700' },
   rowSub: { fontSize: FONT.xs, marginTop: 2 },
-  rowRight: { alignItems: 'flex-end', gap: 3 },
-  rowAmount: { fontSize: FONT.md, fontWeight: '700' },
-  rowStatus: { fontSize: FONT.xs, fontWeight: '600' },
-  allBtn: { borderRadius: RADIUS.lg, padding: 14, alignItems: 'center', marginTop: 6 },
-  allBtnText: { fontSize: FONT.md, fontWeight: '700' },
+  rowRight: { alignItems: 'flex-end', gap: 5 },
+  rowAmount: { fontSize: FONT.md, fontWeight: '800' },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  rowStatus: { fontSize: 10, fontWeight: '700' },
+  allBtn: { borderRadius: RADIUS.lg, padding: 14, alignItems: 'center', marginTop: 8, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  allBtnText: { fontSize: FONT.md, fontWeight: '800' },
   emptyState: {
     alignItems: 'center', paddingVertical: 40,
-    borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, gap: 4,
   },
-  emptyText: { fontSize: FONT.md, fontWeight: '700', marginTop: 10 },
+  emptyText: { fontSize: FONT.md, fontWeight: '800', marginTop: 12 },
   emptyHint: { fontSize: FONT.sm, marginTop: 4 },
   skel: {},
 });
