@@ -50,6 +50,7 @@
       }
     },
     "plugins": [
+      "./plugins/withNotificationSounds",
       "expo-secure-store",
       "expo-notifications",
       "expo-asset",

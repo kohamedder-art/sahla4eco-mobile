@@ -251,12 +251,22 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
     if (!PUSH_NATIVE) return;
     if (Platform.OS === 'android') {
       native().then((N) => {
-        N?.setNotificationChannelAsync('default', {
+        if (!N) return;
+        // 'default' channel (system sound) + 'orders' channel (cash register).
+        // cash_register.ogg is bundled into res/raw by plugins/withNotificationSounds.
+        N.setNotificationChannelAsync('default', {
           name: 'الإشعارات',
           importance: N.AndroidImportance.HIGH,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#2563eb',
           sound: 'default',
+        }).catch(() => {});
+        N.setNotificationChannelAsync('orders', {
+          name: 'الطلبات الجديدة',
+          importance: N.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#16a34a',
+          sound: 'cash_register.ogg',
         }).catch(() => {});
       }).catch(() => {});
     }
