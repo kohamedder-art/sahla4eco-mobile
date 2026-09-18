@@ -26,10 +26,14 @@ export function SettingsScreen({ navigation }: any) {
   const checkForUpdate = async () => {
     setCheckingUpdate(true);
     const result = await check();
-    if (result.updateAvailable && result.latestUrl) {
+    if (result.updateAvailable) {
+      // Open the DIRECT download URL from the check (public file host).
+      // Never the /download/latest redirect — it needs the app's login token,
+      // which the browser doesn't have ("No token provided").
+      const url = result.latestUrl || 'https://www.sahla4eco.com/api/mobile/download/latest';
       Alert.alert(t('settings.updateAvailable'), t('settings.updateMsg'), [
         { text: t('settings.later'), style: 'cancel' },
-        { text: t('settings.download'), onPress: () => Linking.openURL('https://www.sahla4eco.com/api/mobile/download/latest') },
+        { text: t('settings.download'), onPress: () => Linking.openURL(url) },
       ]);
     } else {
       Alert.alert(t('settings.upToDate'), `${t('settings.currentVersion')}: Build ${CURRENT_BUILD}`);
