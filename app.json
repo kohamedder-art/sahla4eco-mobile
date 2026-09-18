@@ -62,7 +62,8 @@
           "cameraPermission": "Allow Sahla4Eco to access your camera to scan QR codes for login."
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      "expo-localization"
     ],
     "owner": "sahla4eco-organization",
     "runtimeVersion": "1.0.0"

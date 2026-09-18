@@ -9,6 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
@@ -27,6 +28,7 @@ const FILTER_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']
 export function OrdersScreen({ navigation, route }: any) {
   const { getAccessToken } = useAuth();
   const colors = useColors();
+  const { t } = useLang();
   const [orders, setOrders] = useState<MobileOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,14 +92,14 @@ export function OrdersScreen({ navigation, route }: any) {
         body: JSON.stringify({ status: 'confirmed' }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'فشل التحديث' }));
-        Alert.alert('خطأ', err.error || 'فشل تحديث حالة الطلب');
+        const err = await res.json().catch(() => ({ error: t('orders.updateFailed') }));
+        Alert.alert(t('orders.errorTitle'), err.error || t('orders.updateFailed'));
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         fetchOrders(activeFilter);
       }
     } catch {
-      Alert.alert('خطأ', 'تعذر الاتصال بالخادم');
+      Alert.alert(t('orders.errorTitle'), t('orders.noConnection'));
     } finally {
       setUpdatingId(null);
     }
@@ -128,7 +130,7 @@ export function OrdersScreen({ navigation, route }: any) {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ScreenHeader title="الطلبات" />
+        <ScreenHeader title={t('orders.title')} />
         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           {[1, 2, 3, 4].map((i) => (
             <View key={i} style={[styles.skeleton, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -149,8 +151,8 @@ export function OrdersScreen({ navigation, route }: any) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader
-        title="الطلبات"
-        subtitle={orders.length > 0 ? `${orders.length} طلب` : undefined}
+        title={t('orders.title')}
+        subtitle={orders.length > 0 ? `${orders.length} · ${t('tab.orders')}` : undefined}
         rightAction={
           <TouchableOpacity
             style={[styles.trackingBtn, { backgroundColor: colors.borderLight }]}
@@ -168,7 +170,7 @@ export function OrdersScreen({ navigation, route }: any) {
           style={[styles.searchInput, { color: colors.text }]}
           value={search}
           onChangeText={setSearch}
-          placeholder="دوّر بالاسم، الهاتف، أو رقم الطلب…"
+          placeholder={t('orders.searchHint')}
           placeholderTextColor={colors.textMuted}
         />
         {search.length > 0 && (
@@ -183,7 +185,7 @@ export function OrdersScreen({ navigation, route }: any) {
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={[{ id: 'all' as const, name: 'كل المتاجر' }, ...stores]}
+            data={[{ id: 'all' as const, name: t('orders.allStores') }, ...stores]}
             keyExtractor={(s) => String(s.id)}
             contentContainerStyle={[styles.filterList, { paddingBottom: 8 }]}
             renderItem={({ item: s }) => {
@@ -225,7 +227,7 @@ export function OrdersScreen({ navigation, route }: any) {
               >
                 <Ionicons name={FILTER_ICONS[f] || 'ellipse-outline'} size={14} color={active ? fg : colors.textSecondary} />
                 <Text style={[styles.chipText, { color: active ? fg : colors.textSecondary }]}>
-                  {getStatusLabel(f === 'all' ? 'الكل' : f)}
+                  {getStatusLabel(f === 'all' ? t('orders.filterAll') : f)}
                 </Text>
                 {count > 0 && (
                   <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: active ? fg : colors.textMuted }]}>{count}</Text>
@@ -319,10 +321,10 @@ export function OrdersScreen({ navigation, route }: any) {
               <Ionicons name={search ? 'search-outline' : 'receipt-outline'} size={26} color={colors.primary} />
             </View>
             <Text style={[styles.emptyText, { color: colors.text }]}>
-              {search ? 'لا توجد نتائج بحث' : 'لا توجد طلبات'}
+              {search ? t('orders.emptySearchTitle') : t('orders.emptyTitle')}
             </Text>
             <Text style={[styles.emptyHint, { color: colors.textMuted }]}>
-              {search ? 'جرّب كلمة بحث مختلفة' : 'اسحب لأسفل للتحديث'}
+              {search ? t('orders.emptySearchHint') : t('orders.emptyHint')}
             </Text>
           </View>
         }

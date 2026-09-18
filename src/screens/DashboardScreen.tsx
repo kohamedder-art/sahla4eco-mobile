@@ -9,33 +9,36 @@ import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatTimeAgo, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return 'صباح الخير';
-  if (h >= 12 && h < 17) return 'نهارك سعيد';
-  if (h >= 17 && h < 22) return 'مساء الخير';
-  return 'مساء النور';
-}
-
-function dayLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  if (sameDay(d, now)) return 'اليوم';
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (sameDay(d, yesterday)) return 'أمس';
-  return d.toLocaleDateString('ar-DZ', { weekday: 'long', day: 'numeric', month: 'short' });
-}
-
 export function DashboardScreen({ navigation }: any) {
   const { user, getAccessToken } = useAuth();
   const colors = useColors();
+  const { t, locale } = useLang();
+  const dateTag = locale === 'ar' ? 'ar-DZ' : locale === 'fr' ? 'fr-DZ' : 'en';
+
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) return t('dash.morning');
+    if (h >= 12 && h < 17) return t('dash.midday');
+    if (h >= 17 && h < 22) return t('dash.evening');
+    return t('dash.night');
+  };
+
+  const dayLabel = (dateStr: string): string => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const sameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    if (sameDay(d, now)) return t('dash.today');
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (sameDay(d, yesterday)) return t('dash.yesterday');
+    return d.toLocaleDateString(dateTag, { weekday: 'long', day: 'numeric', month: 'short' });
+  };
   const [stats, setStats] = useState<any>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +110,7 @@ export function DashboardScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ScreenHeader title={`${greeting()} 👋`} subtitle="جاري تحميل متجرك…" />
+        <ScreenHeader title={`${greeting()} 👋`} subtitle={t('dash.loadingStore')} />
         <View style={styles.content}>
           <View style={[styles.hero, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {[0, 1, 2].map((i) => (
@@ -140,8 +143,8 @@ export function DashboardScreen({ navigation }: any) {
       }
     >
       <ScreenHeader
-        title={`${greeting()}، ${user?.name?.split(' ')[0] || 'المالك'}`}
-        subtitle={new Date().toLocaleDateString('ar-DZ', { weekday: 'long', day: 'numeric', month: 'long' })}
+        title={`${greeting()}، ${user?.name?.split(' ')[0] || t('settings.owner')}`}
+        subtitle={new Date().toLocaleDateString(dateTag, { weekday: 'long', day: 'numeric', month: 'long' })}
         onNotificationPress={() => navigation.navigate('NotificationsTab')}
       />
 
@@ -150,12 +153,12 @@ export function DashboardScreen({ navigation }: any) {
         <View style={[styles.hero, { backgroundColor: colors.primary }]}>
           <View style={styles.heroCol}>
             <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{formatCurrency(stats?.today_revenue || 0)}</Text>
-            <Text style={styles.heroLabel}>إيرادات اليوم</Text>
+            <Text style={styles.heroLabel}>{t('dash.todayRevenue')}</Text>
           </View>
           <View style={styles.heroDivider} />
           <View style={styles.heroCol}>
             <Text style={[styles.heroValue, TYPE.tabularNumbers]}>{String(stats?.today_orders || 0)}</Text>
-            <Text style={styles.heroLabel}>طلبات اليوم</Text>
+            <Text style={styles.heroLabel}>{t('dash.todayOrders')}</Text>
           </View>
           <View style={styles.heroDivider} />
           <TouchableOpacity
@@ -164,7 +167,7 @@ export function DashboardScreen({ navigation }: any) {
             activeOpacity={0.7}
           >
             <Text style={[styles.heroValue, TYPE.tabularNumbers, { color: '#fde68a' }]}>{String(pendingCount || 0)}</Text>
-            <Text style={styles.heroLabel}>بانتظارك</Text>
+            <Text style={styles.heroLabel}>{t('dash.waiting')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -179,10 +182,10 @@ export function DashboardScreen({ navigation }: any) {
             decelerationRate="fast"
           >
             {[
-              { key: 'pending', label: 'معلق', count: stats.pending_count || 0, bg: colors.warningLight, fg: colors.warning, icon: 'time-outline' },
-              { key: 'confirmed', label: 'مؤكد', count: stats.confirmed_count || 0, bg: colors.primaryLight, fg: colors.primary, icon: 'checkmark-circle-outline' },
-              { key: 'delivered', label: 'تم', count: stats.delivered_count || 0, bg: colors.successLight, fg: colors.success, icon: 'bag-check-outline' },
-              { key: 'cancelled', label: 'ملغي', count: stats.cancelled_count || 0, bg: colors.dangerLight, fg: colors.danger, icon: 'close-circle-outline' },
+              { key: 'pending', label: t('dash.pending'), count: stats.pending_count || 0, bg: colors.warningLight, fg: colors.warning, icon: 'time-outline' },
+              { key: 'confirmed', label: t('dash.confirmed'), count: stats.confirmed_count || 0, bg: colors.primaryLight, fg: colors.primary, icon: 'checkmark-circle-outline' },
+              { key: 'delivered', label: t('dash.delivered'), count: stats.delivered_count || 0, bg: colors.successLight, fg: colors.success, icon: 'bag-check-outline' },
+              { key: 'cancelled', label: t('dash.cancelled'), count: stats.cancelled_count || 0, bg: colors.dangerLight, fg: colors.danger, icon: 'close-circle-outline' },
             ].map((c) => (
               <TouchableOpacity
                 key={c.key}
@@ -234,16 +237,26 @@ export function DashboardScreen({ navigation }: any) {
           </View>
         )}
 
+        {/* Low stock heads-up (data already in stats) */}
+        {(stats?.low_stock || 0) > 0 && (
+          <View style={[styles.stockAlert, { backgroundColor: colors.dangerFaint, borderColor: colors.danger + '40' }]}>
+            <Ionicons name="alert-circle-outline" size={20} color={colors.danger} />
+            <Text style={[styles.stockAlertText, { color: colors.text }]}>
+              {stats.low_stock === 1 ? t('dash.lowStockOne') : `${stats.low_stock} ${t('dash.lowStockMany')}${t('dash.lowStockHint')}`}
+            </Text>
+          </View>
+        )}
+
         {/* Recent, grouped by day */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>أحدث الطلبات</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('dash.latestOrders')}</Text>
           {recentOrders.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
                 <Ionicons name="bag-outline" size={26} color={colors.primary} />
               </View>
-              <Text style={[styles.emptyText, { color: colors.text }]}>لا توجد طلبات بعد</Text>
-              <Text style={[styles.emptyHint, { color: colors.textMuted }]}>أول طلب يوصلك راح يظهر هنا مباشرة</Text>
+              <Text style={[styles.emptyText, { color: colors.text }]}>{t('dash.emptyTitle')}</Text>
+              <Text style={[styles.emptyHint, { color: colors.textMuted }]}>{t('dash.emptyHint')}</Text>
             </View>
           ) : (
             groups.map((g) => (
@@ -294,7 +307,7 @@ export function DashboardScreen({ navigation }: any) {
           onPress={() => navigation.navigate('OrdersTab')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.allBtnText, { color: colors.primary }]}>عرض كل الطلبات</Text>
+          <Text style={[styles.allBtnText, { color: colors.primary }]}>{t('dash.viewAllOrders')}</Text>
           <Ionicons name="arrow-back" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -327,6 +340,12 @@ const styles = StyleSheet.create({
   counterCount: { fontSize: FONT.xl, fontWeight: '800' },
   counterLabel: { fontSize: FONT.xs, fontWeight: '700' },
   section: { marginTop: 20 },
+  stockAlert: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderRadius: RADIUS.lg, padding: 13, marginTop: 12,
+    borderWidth: 1,
+  },
+  stockAlertText: { flex: 1, fontSize: FONT.sm, fontWeight: '700', lineHeight: 20 },
   sectionTitle: { fontSize: FONT.lg, fontWeight: '800', marginBottom: 10 },
   dayLabel: { fontSize: FONT.xs, fontWeight: '700', marginTop: 4, marginBottom: 6 },
   actionRow: {

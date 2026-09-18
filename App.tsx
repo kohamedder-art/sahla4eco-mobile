@@ -6,6 +6,7 @@ import { View, Text, ActivityIndicator, StyleSheet, useColorScheme, Linking, Ale
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import { NotifProvider } from './src/hooks/usePushNotifications';
 import { ThemeContext, useTheme, LIGHT_COLORS, DARK_COLORS } from './src/contexts/ThemeContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -109,6 +110,7 @@ export default function App() {
   if (!loaded) return null;
 
   return (
+    <LanguageProvider>
     <SafeAreaProvider>
       <ThemeContext.Provider value={{ isDark, colors, preference, setPreference: setPref }}>
         <ErrorBoundary>
@@ -123,6 +125,7 @@ export default function App() {
         </ErrorBoundary>
       </ThemeContext.Provider>
     </SafeAreaProvider>
+    </LanguageProvider>
   );
 }
 

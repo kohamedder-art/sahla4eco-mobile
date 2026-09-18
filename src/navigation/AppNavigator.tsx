@@ -16,7 +16,7 @@
  * arrow even when it is the first screen in the stack (navigates to Orders).
  * ----------------------------------------------------------------------------
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
@@ -30,6 +30,9 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { useColors } from '../contexts/ThemeContext';
 import { useNotif } from '../hooks/usePushNotifications';
+import { useLang } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../constants/api';
 
 const Tab = createBottomTabNavigator();
 const OrdersStack = createNativeStackNavigator();
@@ -55,6 +58,37 @@ export function AppNavigator() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { unreadCount } = useNotif();
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const { t } = useLang();
+  const { getAccessToken, user } = useAuth();
+
+  // Pending-orders badge on the Orders tab (money waiting — glanceable).
+  useEffect(() => {
+    if (!user) {
+      setPendingCount(0);
+      return;
+    }
+    let cancelled = false;
+    const fetchPending = async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token || cancelled) return;
+        const res = await fetch(`${API_BASE_URL}/api/mobile/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setPendingCount(Number(data.pending_count) || 0);
+        }
+      } catch {}
+    };
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [user, getAccessToken]);
 
   return (
     <Tab.Navigator
@@ -77,7 +111,7 @@ export function AppNavigator() {
         name="DashboardTab"
         component={DashboardScreen}
         options={{
-          tabBarLabel: 'الرئيسية',
+          tabBarLabel: t('tab.home'),
           tabBarIcon: ({ focused, color }) => <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} color={color} />,
         }}
       />
@@ -85,15 +119,24 @@ export function AppNavigator() {
         name="OrdersTab"
         component={OrdersStackScreen}
         options={{
-          tabBarLabel: 'الطلبات',
+          tabBarLabel: t('tab.orders'),
           tabBarIcon: ({ focused, color }) => <TabIcon name={focused ? 'receipt' : 'receipt-outline'} focused={focused} color={color} />,
+          tabBarBadge: pendingCount > 0 ? (pendingCount > 99 ? '99+' : pendingCount) : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.notification,
+            fontSize: 10,
+            fontWeight: '800',
+            minWidth: 18,
+            height: 18,
+            fontVariant: ['tabular-nums'],
+          },
         }}
       />
       <Tab.Screen
         name="NotificationsTab"
         component={NotificationsScreen}
         options={{
-          tabBarLabel: 'الإشعارات',
+          tabBarLabel: t('tab.notifications'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name={focused ? 'notifications' : 'notifications-outline'} focused={focused} color={color} />
           ),
@@ -112,7 +155,7 @@ export function AppNavigator() {
         name="SettingsTab"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'المزيد',
+          tabBarLabel: t('tab.more'),
           tabBarIcon: ({ focused, color }) => <TabIcon name={focused ? 'settings' : 'settings-outline'} focused={focused} color={color} />,
         }}
       />

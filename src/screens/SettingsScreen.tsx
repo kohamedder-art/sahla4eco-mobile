@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
+import { LOCALES } from '../i18n/strings';
 import { useNotif } from '../hooks/usePushNotifications';
 import { useAppUpdate } from '../hooks/useAppUpdate';
 import Constants from 'expo-constants';
@@ -14,6 +16,7 @@ import { RADIUS, FONT } from '../constants/theme';
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
   const { colors, isDark, setPreference } = useTheme();
+  const { t, locale, setLocale } = useLang();
   const { unreadCount, cashSound, setCashSound, previewCashSound } = useNotif();
   const { updateAvailable, latestBuild, latestUrl, check, checking, CURRENT_BUILD } = useAppUpdate();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
@@ -24,26 +27,26 @@ export function SettingsScreen({ navigation }: any) {
     setCheckingUpdate(true);
     const result = await check();
     if (result.updateAvailable && result.latestUrl) {
-      Alert.alert('تحديث متاح', `الإصدار Build ${result.latestBuild} متاح للتحميل. الإصدار الحالي: Build ${CURRENT_BUILD}.`, [
-        { text: 'لاحقاً', style: 'cancel' },
-        { text: 'تحميل', onPress: () => Linking.openURL('https://www.sahla4eco.com/api/mobile/download/latest') },
+      Alert.alert(t('settings.updateAvailable'), t('settings.updateMsg'), [
+        { text: t('settings.later'), style: 'cancel' },
+        { text: t('settings.download'), onPress: () => Linking.openURL('https://www.sahla4eco.com/api/mobile/download/latest') },
       ]);
     } else {
-      Alert.alert('أنت تستخدم أحدث إصدار', `الإصدار الحالي: Build ${CURRENT_BUILD}`);
+      Alert.alert(t('settings.upToDate'), `${t('settings.currentVersion')}: Build ${CURRENT_BUILD}`);
     }
     setCheckingUpdate(false);
   };
 
   const handleLogout = () => {
-    Alert.alert('تسجيل الخروج', 'هل أنت متأكد؟', [
-      { text: 'إلغاء', style: 'cancel' },
-      { text: 'خروج', style: 'destructive', onPress: async () => { try { await logout(); } catch {} } },
+    Alert.alert(t('settings.logoutTitle'), t('settings.logoutConfirm'), [
+      { text: t('settings.cancel'), style: 'cancel' },
+      { text: t('settings.logoutYes'), style: 'destructive', onPress: async () => { try { await logout(); } catch {} } },
     ]);
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScreenHeader title="المزيد" rightAction={
+      <ScreenHeader title={t('settings.title')} rightAction={
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {updateAvailable && (
             <TouchableOpacity style={[styles.updateBadge, { backgroundColor: colors.borderLight }]} onPress={checkForUpdate}>
@@ -70,7 +73,7 @@ export function SettingsScreen({ navigation }: any) {
             </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name || 'المالك'}</Text>
+            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name || t('settings.owner')}</Text>
             <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email || ''}</Text>
             {user?.store_name && (
               <View style={styles.storeRow}>
@@ -90,7 +93,7 @@ export function SettingsScreen({ navigation }: any) {
               <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
                 <Ionicons name="notifications-outline" size={17} color={colors.primary} />
               </View>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>الإشعارات</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.notifications')}</Text>
             </View>
             <View style={styles.settingRight}>
               {unreadCount > 0 && (
@@ -110,9 +113,9 @@ export function SettingsScreen({ navigation }: any) {
                 </View>
               </TouchableOpacity>
               <View>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>صوت الكاشير</Text>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.cashSound')}</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>
-                  {cashSound ? 'يرن عند كل طلب جديد · اضغط الأيقونة للتجربة' : 'صامت'}
+                  {cashSound ? t('settings.cashSoundOn') : t('settings.cashSoundOff')}
                 </Text>
               </View>
             </View>
@@ -130,9 +133,9 @@ export function SettingsScreen({ navigation }: any) {
                 <Ionicons name={isDark ? 'moon' : 'sunny'} size={17} color={colors.warning} />
               </View>
               <View>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>الوضع الداكن</Text>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.darkMode')}</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>
-                  {isDark ? 'مفعّل' : 'معطّل'}
+                  {isDark ? t('settings.on') : t('settings.off')}
                 </Text>
               </View>
             </View>
@@ -146,6 +149,38 @@ export function SettingsScreen({ navigation }: any) {
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconBox, { backgroundColor: colors.infoLight }]}>
+                <Ionicons name="language-outline" size={17} color={colors.info} />
+              </View>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.language')}</Text>
+            </View>
+          </View>
+          <View style={styles.langRow}>
+            {LOCALES.map((l) => {
+              const active = locale === l.id;
+              return (
+                <TouchableOpacity
+                  key={l.id}
+                  style={[
+                    styles.langBtn,
+                    { backgroundColor: colors.borderLight },
+                    active && { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => setLocale(l.id)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.langText, { color: colors.textSecondary }, active && { color: '#fff' }]}>
+                    {l.native}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <TouchableOpacity
             style={[styles.settingRow, { borderBottomColor: colors.border }]}
             onPress={checkForUpdate}
@@ -155,7 +190,7 @@ export function SettingsScreen({ navigation }: any) {
               <View style={[styles.iconBox, { backgroundColor: colors.infoLight }]}>
                 <Ionicons name="refresh-outline" size={17} color={colors.info} />
               </View>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>التحقق من التحديثات</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.checkUpdates')}</Text>
             </View>
             <View style={styles.settingRight}>
               {checkingUpdate ? (
@@ -172,7 +207,7 @@ export function SettingsScreen({ navigation }: any) {
                 <Ionicons name="phone-portrait-outline" size={17} color={colors.success} />
               </View>
               <View>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>الإصدار</Text>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.version')}</Text>
                 <Text style={[styles.settingHint, { color: colors.textMuted }]}>Build {CURRENT_BUILD}</Text>
               </View>
             </View>
@@ -185,7 +220,7 @@ export function SettingsScreen({ navigation }: any) {
           onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={17} color="#fff" />
-          <Text style={styles.logoutText}>تسجيل الخروج</Text>
+          <Text style={styles.logoutText}>{t('settings.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -220,6 +255,9 @@ const styles = StyleSheet.create({
   settingValue: { fontSize: FONT.sm, fontWeight: '500' },
   unreadBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   unreadText: { color: '#fff', fontSize: 9, fontWeight: '800' },
+  langRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
+  langBtn: { flex: 1, paddingVertical: 10, borderRadius: RADIUS.md, alignItems: 'center' },
+  langText: { fontSize: FONT.sm, fontWeight: '700' },
   updateBadge: {
     width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center',

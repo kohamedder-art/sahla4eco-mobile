@@ -55,6 +55,7 @@ export interface OrderDetail extends MobileOrder {
   shipping_address?: string;
   delivery_type?: string;
   tracking_number?: string;
+  product_stock?: number | null;
   timeline: StatusTimeline[];
 }
 

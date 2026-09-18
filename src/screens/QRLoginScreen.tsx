@@ -6,6 +6,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { RADIUS, FONT } from '../constants/theme';
 
@@ -17,6 +18,7 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
   const { loginQR } = useAuth();
   const { register } = useNotif();
   const colors = useColors();
+  const { t } = useLang();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
       // The QR code contains a raw token
       const token = data.trim();
       if (!token || token.length < 10) {
-        Alert.alert('خطأ', 'رمز QR غير صالح');
+        Alert.alert(t('login.errorTitle'), t('qr.failed'));
         scanned.current = false;
         setLoading(false);
         return;
@@ -46,7 +48,7 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
       await loginQR(token);
       register().catch(() => {});
     } catch (e: any) {
-      Alert.alert('خطأ', e.message || 'فشل تسجيل الدخول برمز QR');
+      Alert.alert(t('login.errorTitle'), e.message || t('qr.failed'));
       scanned.current = false;
       setLoading(false);
     }
@@ -66,18 +68,18 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
         <View style={[styles.permIconWrap, { backgroundColor: colors.primaryLight }]}>
           <Ionicons name="camera-outline" size={32} color={colors.primary} />
         </View>
-        <Text style={[styles.permTitle, { color: colors.text }]}>الوصول إلى الكاميرا مطلوب</Text>
+        <Text style={[styles.permTitle, { color: colors.text }]}>{t('qr.cameraTitle')}</Text>
         <Text style={[styles.permHint, { color: colors.textSecondary }]}>
-          لمسح رمز QR لتسجيل الدخول
+          {t('qr.cameraHint')}
         </Text>
         <TouchableOpacity
           style={[styles.permBtn, { backgroundColor: colors.primary }]}
           onPress={requestPermission}
         >
-          <Text style={styles.permBtnText}>منح صلاحية الكاميرا</Text>
+          <Text style={styles.permBtnText}>{t('qr.grant')}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onSwitchToEmail} style={styles.switchBtn}>
-          <Text style={[styles.switchText, { color: colors.primary }]}>تسجيل الدخول بالبريد</Text>
+          <Text style={[styles.switchText, { color: colors.primary }]}>{t('login.email')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -86,9 +88,9 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>مسح رمز QR</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('qr.title')}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          افتح رمز QR على موقع Sahla4Eco ومسحه هنا
+          {t('qr.hint')}
         </Text>
       </View>
 
@@ -104,14 +106,14 @@ export function QRLoginScreen({ onSwitchToEmail }: Props) {
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.loadingText}>جاري تسجيل الدخول...</Text>
+            <Text style={styles.loadingText}>{t('dash.loadingStore')}</Text>
           </View>
         )}
       </View>
 
       <TouchableOpacity onPress={onSwitchToEmail} style={[styles.switchBtn, { borderTopColor: colors.border }]}>
         <Ionicons name="mail-outline" size={16} color={colors.primary} />
-        <Text style={[styles.switchText, { color: colors.primary }]}>تسجيل الدخول بالبريد الإلكتروني</Text>
+        <Text style={[styles.switchText, { color: colors.primary }]}>{t('login.email')}</Text>
       </TouchableOpacity>
     </View>
   );

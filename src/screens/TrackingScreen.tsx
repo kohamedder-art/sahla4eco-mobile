@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { RADIUS, FONT, SHADOW, STATUS_COLORS, TYPE } from '../constants/theme';
 import { formatCurrency, getStatusLabel } from '../utils/format';
@@ -23,11 +24,11 @@ import { API_BASE_URL } from '../constants/api';
 import type { MobileOrder } from '../types';
 
 const TRACKING_STEPS = [
-  { key: 'confirmed', label: 'تأكيد' },
-  { key: 'processing', label: 'تجهيز' },
-  { key: 'shipped', label: 'شحن' },
-  { key: 'out_for_delivery', label: 'توصيل' },
-  { key: 'delivered', label: 'استلام' },
+  { key: 'confirmed', labelKey: 'tracking.stepConfirmed' as const },
+  { key: 'processing', labelKey: 'tracking.stepProcessing' as const },
+  { key: 'shipped', labelKey: 'tracking.stepShipped' as const },
+  { key: 'out_for_delivery', labelKey: 'tracking.stepOut' as const },
+  { key: 'delivered', labelKey: 'tracking.stepDelivered' as const },
 ];
 
 const STATUS_TO_STEP: Record<string, number> = {
@@ -58,6 +59,7 @@ function getStepColor(status: string, colors: Record<string, string>): string {
 }
 
 function TrackingProgress({ status, colors }: { status: string; colors: Record<string, string> }) {
+  const { t } = useLang();
   const step = getStepIndex(status);
   const isBad = step < 0 && step !== -0.5;
   const currentStep = isBad ? 0 : Math.max(0, step);
@@ -90,7 +92,7 @@ function TrackingProgress({ status, colors }: { status: string; colors: Record<s
               style={[styles.stepLabel, { color: done ? barColor : colors.textMuted }, i === currentStep && !isBad && { fontWeight: '700' }]}
               numberOfLines={1}
             >
-              {s.label}
+              {t(s.labelKey)}
             </Text>
           );
         })}
@@ -99,7 +101,7 @@ function TrackingProgress({ status, colors }: { status: string; colors: Record<s
         <View style={[styles.badBanner, { backgroundColor: colors.dangerLight }]}>
           <Ionicons name="alert-circle" size={12} color={colors.danger} />
           <Text style={[styles.badBannerText, { color: colors.danger }]}>
-            {status === 'cancelled' ? 'ملغي' : status === 'returned' ? 'مرتجع' : status === 'failed' ? 'فشل التوصيل' : status}
+            {status === 'cancelled' ? t('tracking.cancelled') : status === 'returned' ? t('tracking.returned') : status === 'failed' ? t('tracking.failed') : status}
           </Text>
         </View>
       )}
@@ -110,6 +112,7 @@ function TrackingProgress({ status, colors }: { status: string; colors: Record<s
 export function TrackingScreen({ navigation }: any) {
   const { getAccessToken } = useAuth();
   const colors = useColors();
+  const { t } = useLang();
   const [orders, setOrders] = useState<MobileOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -182,7 +185,7 @@ export function TrackingScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader
-        title="تتبع الشحنات"
+        title={t('tracking.title')}
         onBackPress={() => navigation.goBack()}
       />
       {/* Stats Summary */}
@@ -190,17 +193,17 @@ export function TrackingScreen({ navigation }: any) {
         <View style={[styles.statBox, { backgroundColor: colors.primaryLight }]}>
           <Ionicons name="car-outline" size={16} color={colors.primary} />
           <Text style={[styles.statNum, { color: colors.primary }]}>{stats.inTransit}</Text>
-          <Text style={[styles.statLabel, { color: colors.primary }]}>في الطريق</Text>
+          <Text style={[styles.statLabel, { color: colors.primary }]}>{t('tracking.inTransit')}</Text>
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.successLight }]}>
           <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
           <Text style={[styles.statNum, { color: colors.success }]}>{stats.delivered}</Text>
-          <Text style={[styles.statLabel, { color: colors.success }]}>تم التسليم</Text>
+          <Text style={[styles.statLabel, { color: colors.success }]}>{t('tracking.delivered')}</Text>
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.dangerLight }]}>
           <Ionicons name="warning-outline" size={16} color={colors.danger} />
           <Text style={[styles.statNum, { color: colors.danger }]}>{stats.problems}</Text>
-          <Text style={[styles.statLabel, { color: colors.danger }]}>مشاكل</Text>
+          <Text style={[styles.statLabel, { color: colors.danger }]}>{t('tracking.problems')}</Text>
         </View>
       </View>
 
@@ -211,7 +214,7 @@ export function TrackingScreen({ navigation }: any) {
           style={[styles.searchInput, { color: colors.text }]}
           value={search}
           onChangeText={setSearch}
-          placeholder="بحث برقم التتبع، اسم العميل..."
+          placeholder={t('tracking.searchHint')}
           placeholderTextColor={colors.textMuted}
         />
         {search.length > 0 && (
@@ -272,7 +275,7 @@ export function TrackingScreen({ navigation }: any) {
                     {item.tracking_number}
                   </Text>
                   <Text style={[styles.copyHint, { color: colors.primary }]}>
-                    {copiedId === item.id ? 'تم النسخ' : 'نسخ'}
+                    {copiedId === item.id ? t('tracking.copied') : t('tracking.copy')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -298,10 +301,10 @@ export function TrackingScreen({ navigation }: any) {
               <Ionicons name={search ? 'search-outline' : 'car-outline'} size={26} color={colors.primary} />
             </View>
             <Text style={[styles.emptyText, { color: colors.text }]}>
-              {search ? 'لا توجد نتائج بحث' : 'لا توجد شحنات للتتبع'}
+              {search ? t('tracking.emptySearchTitle') : t('tracking.emptyTitle')}
             </Text>
             <Text style={[styles.emptyHint, { color: colors.textMuted }]}>
-              {search ? 'جرّب كلمة بحث مختلفة' : 'عند ربط طلب بشركة توصيل، سيظهر هنا'}
+              {search ? t('tracking.emptySearchHint') : t('tracking.emptyHint')}
             </Text>
           </View>
         }

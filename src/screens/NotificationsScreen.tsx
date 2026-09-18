@@ -15,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { useNotif } from '../hooks/usePushNotifications';
 import { RADIUS, FONT, TYPE } from '../constants/theme';
 import { formatTimeAgo } from '../utils/format';
@@ -22,6 +23,7 @@ import type { AppNotification } from '../types';
 
 export function NotificationsScreen({ navigation }: any) {
   const colors = useColors();
+  const { t } = useLang();
   const { notifications, unreadCount, refresh, markAllRead } = useNotif();
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
@@ -51,8 +53,8 @@ export function NotificationsScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader
-        title="الإشعارات"
-        subtitle={unreadCount > 0 ? `${unreadCount} غير مقروء` : undefined}
+        title={t('notif.title')}
+        subtitle={unreadCount > 0 ? `${unreadCount} ${t('notif.unread')}` : undefined}
         rightAction={
           unreadCount > 0 ? (
             <TouchableOpacity
@@ -61,7 +63,7 @@ export function NotificationsScreen({ navigation }: any) {
               activeOpacity={0.7}
             >
               <Ionicons name="checkmark-done-outline" size={15} color={colors.primary} />
-              <Text style={{ fontSize: FONT.xs, fontWeight: '700', color: colors.primary }}>تحديد الكل</Text>
+              <Text style={{ fontSize: FONT.xs, fontWeight: '700', color: colors.primary }}>{t('notif.markAll')}</Text>
             </TouchableOpacity>
           ) : undefined
         }
@@ -109,8 +111,8 @@ export function NotificationsScreen({ navigation }: any) {
             <View style={[styles.emptyIcon, { backgroundColor: colors.primaryLight }]}>
               <Ionicons name="notifications-off-outline" size={26} color={colors.primary} />
             </View>
-            <Text style={[styles.emptyText, { color: colors.text }]}>لا توجد إشعارات</Text>
-            <Text style={[styles.emptyHint, { color: colors.textMuted }]}>عند وصول إشعار جديد، ستراه هنا</Text>
+            <Text style={[styles.emptyText, { color: colors.text }]}>{t('notif.emptyTitle')}</Text>
+            <Text style={[styles.emptyHint, { color: colors.textMuted }]}>{t('notif.emptyHint')}</Text>
           </View>
         }
       />

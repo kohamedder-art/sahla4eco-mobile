@@ -23,6 +23,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotif } from '../hooks/usePushNotifications';
+import { useLang } from '../contexts/LanguageContext';
 import { useColors } from '../contexts/ThemeContext';
 import { RADIUS, FONT, SHADOW } from '../constants/theme';
 
@@ -30,6 +31,7 @@ const GOOGLE_OAUTH_URL = 'https://www.sahla4eco.com/api/oauth/google/url?client=
 
 export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   const { login, savedAccounts, removeAccount, silentLogin, loginOAuthToken } = useAuth();
+  const { t } = useLang();
   const { register } = useNotif();
   const colors = useColors();
   const [email, setEmail] = useState('');
@@ -66,15 +68,15 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
   };
 
   const handleRemoveAccount = (accountEmail: string) => {
-    Alert.alert('إزالة الحساب', `إزالة ${accountEmail} من الحسابات المحفوظة؟`, [
-      { text: 'إلغاء', style: 'cancel' },
-      { text: 'إزالة', style: 'destructive', onPress: () => removeAccount(accountEmail) },
+    Alert.alert(t('login.removeTitle'), t('login.removeMsg', { email: accountEmail }), [
+      { text: t('login.cancel'), style: 'cancel' },
+      { text: t('login.remove'), style: 'destructive', onPress: () => removeAccount(accountEmail) },
     ]);
   };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('تنبيه', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      Alert.alert(t('login.alertTitle'), t('login.fillAll'));
       return;
     }
     setLoading(true);
@@ -82,7 +84,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
       await login(email.trim(), password.trim());
       register().catch(() => {});
     } catch (e: any) {
-      Alert.alert('خطأ', e.message || 'تأكد من البريد الإلكتروني وكلمة المرور');
+      Alert.alert(t('login.errorTitle'), e.message || t('login.badCredentials'));
     } finally {
       setLoading(false);
     }
@@ -112,15 +114,15 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
             register().catch(() => {});
             return;
           } catch {
-            Alert.alert('خطأ', 'تعذر إتمام الدخول عبر Google');
+            Alert.alert(t('login.errorTitle'), t('login.oauthFailed'));
             return;
           }
         }
-        Alert.alert('خطأ', 'عاد Google بدون بيانات الدخول');
+        Alert.alert(t('login.errorTitle'), t('login.oauthNoData'));
       }
       // cancel/dismiss/lockout → stay silent, user just closed the browser
     } catch (e: any) {
-      Alert.alert('خطأ', e?.message || 'تعذر فتح شاشة Google');
+      Alert.alert(t('login.errorTitle'), e?.message || t('login.googleFailed'));
     } finally {
       setGoogleLoading(false);
       await WebBrowser.coolDownAsync().catch(() => {});
@@ -139,12 +141,12 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
               <Ionicons name="storefront" size={30} color="#fff" />
             </View>
             <Text style={[styles.title, { color: colors.text }]}>Sahla4Eco</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>طلبات متجرك، في جيبك</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('login.subtitle')}</Text>
           </View>
 
           {savedAccounts.length > 0 && (
             <View style={styles.accountsSection}>
-              <Text style={[styles.accountsLabel, { color: colors.textSecondary }]}>حسابات محفوظة</Text>
+              <Text style={[styles.accountsLabel, { color: colors.textSecondary }]}>{t('login.savedAccounts')}</Text>
               {savedAccounts.map((account) => (
                 <TouchableOpacity
                   key={account.email}
@@ -176,7 +178,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
               ))}
               <View style={[styles.divider, { marginTop: 4 }]}>
                 <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                <Text style={[styles.dividerText, { color: colors.textMuted }]}>أو سجّل دخول بحساب آخر</Text>
+                <Text style={[styles.dividerText, { color: colors.textMuted }]}>{t('login.loginOther')}</Text>
                 <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
               </View>
             </View>
@@ -195,7 +197,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
                 onChangeText={setEmail}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                placeholder="البريد الإلكتروني"
+                placeholder={t('login.email')}
                 placeholderTextColor={colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -215,7 +217,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
                 onChangeText={setPassword}
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
-                placeholder="كلمة المرور"
+                placeholder={t('login.password')}
                 placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
               />
@@ -234,7 +236,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <View style={styles.buttonInner}>
-                  <Text style={styles.buttonText}>تسجيل الدخول</Text>
+                  <Text style={styles.buttonText}>{t('login.submit')}</Text>
                   <Ionicons name="arrow-back" size={18} color="#fff" />
                 </View>
               )}
@@ -242,7 +244,7 @@ export function LoginScreen({ onSwitchToQR }: { onSwitchToQR?: () => void }) {
 
             <View style={[styles.divider, { marginTop: 20 }]}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-              <Text style={[styles.dividerText, { color: colors.textMuted }]}>أو</Text>
+              <Text style={[styles.dividerText, { color: colors.textMuted }]}>{t('login.or')}</Text>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 

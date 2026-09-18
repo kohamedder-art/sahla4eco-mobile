@@ -19,6 +19,7 @@ import * as Haptics from 'expo-haptics';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useColors } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LanguageContext';
 import { RADIUS, FONT, TYPE, SHADOW } from '../constants/theme';
 import { formatCurrency, formatDate, getStatusLabel } from '../utils/format';
 import { API_BASE_URL } from '../constants/api';
@@ -28,6 +29,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
   const { id } = route.params;
   const { getAccessToken } = useAuth();
   const colors = useColors();
+  const { t } = useLang();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -66,11 +68,11 @@ export function OrderDetailScreen({ navigation, route }: any) {
         }).then(r => r.json());
         setOrder(refreshed);
       } else {
-        const err = await res.json().catch(() => ({ error: 'فشل التحديث' }));
-        Alert.alert('خطأ', err.error || 'فشل تحديث حالة الطلب');
+        const err = await res.json().catch(() => ({ error: t('detail.updateFailed') }));
+        Alert.alert(t('orders.errorTitle'), err.error || t('detail.updateFailed'));
       }
     } catch {
-      Alert.alert('خطأ', 'تعذر الاتصال بالخادم');
+      Alert.alert(t('orders.errorTitle'), t('orders.noConnection'));
     } finally {
       setUpdating(false);
     }
@@ -94,14 +96,14 @@ export function OrderDetailScreen({ navigation, route }: any) {
 
   const statusActions: { label: string; status: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [];
   if (order?.status === 'pending') {
-    statusActions.push({ label: 'تأكيد', status: 'confirmed', color: colors.success, icon: 'checkmark-circle-outline' });
-    statusActions.push({ label: 'إلغاء', status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
+    statusActions.push({ label: t('detail.confirm'), status: 'confirmed', color: colors.success, icon: 'checkmark-circle-outline' });
+    statusActions.push({ label: t('detail.cancel'), status: 'cancelled', color: colors.danger, icon: 'close-circle-outline' });
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader
-        title="تفاصيل الطلب"
+        title={t('detail.title')}
         onBackPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Orders'); }}
       />
       {loading ? (
@@ -110,7 +112,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
         </View>
       ) : !order ? (
         <View style={styles.centered}>
-          <Text style={{ fontSize: FONT.lg, color: colors.textSecondary }}>الطلب غير موجود</Text>
+          <Text style={{ fontSize: FONT.lg, color: colors.textSecondary }}>{t('detail.notFound')}</Text>
         </View>
       ) : (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
@@ -124,7 +126,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
         </View>
         <View style={styles.statusTexts}>
           <Text style={styles.statusText}>{getStatusLabel(order.status)}</Text>
-          <Text style={[styles.statusSub, TYPE.tabularNumbers]}>طلب #{order.id}</Text>
+          <Text style={[styles.statusSub, TYPE.tabularNumbers]}>{t('orders.title')} #{order.id}</Text>
         </View>
         {order.store_name ? (
           <View style={styles.storeGlassBadge}>
@@ -137,7 +139,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="person-outline" size={14} color={colors.textMuted} />
-          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>العميل</Text>
+          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.customer')}</Text>
         </View>
         <Text style={[styles.customerName, { color: colors.text }]}>{order.customer_name}</Text>
         <TouchableOpacity style={styles.phoneRow} onPress={callCustomer}>
@@ -158,18 +160,30 @@ export function OrderDetailScreen({ navigation, route }: any) {
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="bag-outline" size={14} color={colors.textMuted} />
-          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>المنتج</Text>
+          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.product')}</Text>
         </View>
         <Text style={[styles.productName, { color: colors.text }]}>{order.product_title}</Text>
+        {order.product_stock != null && (
+          <View style={[styles.stockRow, { backgroundColor: order.product_stock > 0 ? colors.successFaint : colors.dangerFaint }]}>
+            <Ionicons
+              name={order.product_stock > 0 ? 'cube-outline' : 'alert-circle-outline'}
+              size={13}
+              color={order.product_stock > 0 ? colors.success : colors.danger}
+            />
+            <Text style={[styles.stockText, { color: order.product_stock > 0 ? colors.success : colors.danger }]}>
+              {order.product_stock > 0 ? `${t('detail.stockLeft')}: ${order.product_stock}` : t('detail.outOfStock')}
+            </Text>
+          </View>
+        )}
         {order.variant_name && (
           <View style={styles.addressRow}>
             <Ionicons name="pricetag-outline" size={13} color={colors.textSecondary} />
             <Text style={[styles.variant, { color: colors.textSecondary }]}>{order.variant_name}</Text>
           </View>
         )}
-        <Text style={[styles.quantity, { color: colors.textSecondary }]}>الكمية: {order.quantity}</Text>
+        <Text style={[styles.quantity, { color: colors.textSecondary }]}>{t('detail.quantity')}: {order.quantity}</Text>
         <View style={[styles.priceRow, { borderTopColor: colors.border }]}>
-          <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>المجموع</Text>
+          <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('detail.total')}</Text>
           <Text style={[styles.price, TYPE.tabularNumbers, { color: colors.text }]}>{formatCurrency(order.total_price, order.currency)}</Text>
         </View>
       </View>
@@ -178,7 +192,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="information-circle-outline" size={14} color={colors.textMuted} />
-          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>مصدر الطلب</Text>
+          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.orderSource')}</Text>
         </View>
         {order.order_source_label && (
           <View style={styles.infoItem}>
@@ -205,7 +219,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
               <Ionicons name={order.delivery_type === 'desk' ? 'business-outline' : 'home-outline'} size={13} color={colors.warning} />
             </View>
             <Text style={[styles.infoText, { color: colors.text }]}>
-              {order.delivery_type === 'desk' ? 'توصيل إلى المكتب' : 'توصيل إلى المنزل'}
+              {order.delivery_type === 'desk' ? t('detail.deskDelivery') : t('detail.homeDelivery')}
             </Text>
           </View>
         )}
@@ -214,7 +228,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
             <View style={[styles.iconSm, { backgroundColor: colors.successLight }]}>
               <Ionicons name="cube-outline" size={13} color={colors.success} />
             </View>
-            <Text style={[styles.infoText, { color: colors.text }]}>رقم التتبع: {order.tracking_number}</Text>
+            <Text style={[styles.infoText, { color: colors.text }]}>{t('detail.trackingNumber')}: {order.tracking_number}</Text>
           </View>
         )}
       </View>
@@ -224,7 +238,7 @@ export function OrderDetailScreen({ navigation, route }: any) {
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="time-outline" size={14} color={colors.textMuted} />
-            <Text style={[styles.cardTitle, { color: colors.textMuted }]}>آخر التحديثات</Text>
+            <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.latestUpdates')}</Text>
           </View>
           {order.timeline.map((t: any, i: number) => (
             <View key={i} style={styles.timelineItem}>
@@ -271,11 +285,11 @@ export function OrderDetailScreen({ navigation, route }: any) {
       <View style={styles.contactRow}>
         <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.success }]} onPress={whatsappCustomer} activeOpacity={0.85}>
           <Ionicons name="logo-whatsapp" size={16} color="#fff" />
-          <Text style={styles.contactLabel}>واتساب</Text>
+          <Text style={styles.contactLabel}>{t('detail.whatsapp')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.primary }]} onPress={callCustomer} activeOpacity={0.85}>
           <Ionicons name="call" size={16} color="#fff" />
-          <Text style={styles.contactLabel}>اتصال</Text>
+          <Text style={styles.contactLabel}>{t('detail.call')}</Text>
         </TouchableOpacity>
       </View>
       </ScrollView>
@@ -322,6 +336,8 @@ const styles = StyleSheet.create({
   address: { fontSize: FONT.sm },
   iconSm: { width: 26, height: 26, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   productName: { fontSize: FONT.lg, fontWeight: '700', marginBottom: 4 },
+  stockRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 7, borderRadius: RADIUS.md, marginTop: 6, alignSelf: 'flex-start' },
+  stockText: { fontSize: FONT.xs, fontWeight: '700' },
   variant: { fontSize: FONT.sm },
   quantity: { fontSize: FONT.sm, marginTop: 4, marginBottom: 8 },
   infoItem: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
