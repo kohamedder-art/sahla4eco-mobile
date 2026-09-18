@@ -14,7 +14,7 @@ import { RADIUS, FONT } from '../constants/theme';
 export function SettingsScreen({ navigation }: any) {
   const { user, logout } = useAuth();
   const { colors, isDark, setPreference } = useTheme();
-  const { unreadCount } = useNotif();
+  const { unreadCount, cashSound, setCashSound, previewCashSound } = useNotif();
   const { updateAvailable, latestBuild, latestUrl, check, checking, CURRENT_BUILD } = useAppUpdate();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
@@ -101,6 +101,28 @@ export function SettingsScreen({ navigation }: any) {
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </View>
           </TouchableOpacity>
+
+          <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+            <View style={styles.settingLeft}>
+              <TouchableOpacity onPress={() => previewCashSound()} activeOpacity={0.7}>
+                <View style={[styles.iconBox, { backgroundColor: colors.successLight }]}>
+                  <Ionicons name="cash-outline" size={17} color={colors.success} />
+                </View>
+              </TouchableOpacity>
+              <View>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>صوت الكاشير</Text>
+                <Text style={[styles.settingHint, { color: colors.textMuted }]}>
+                  {cashSound ? 'يرن عند كل طلب جديد · اضغط الأيقونة للتجربة' : 'صامت'}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={cashSound}
+              onValueChange={(v) => setCashSound(v)}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={cashSound ? colors.primary : '#f4f3f4'}
+            />
+          </View>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>

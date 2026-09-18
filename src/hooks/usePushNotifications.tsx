@@ -29,6 +29,7 @@ import type * as ExpoNotifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
+import { useAudioPlayer } from 'expo-audio';
 import { useAuth } from '../contexts/AuthContext';
 import { registerPushToken, unregisterPushToken, fetchNotifications, markNotificationsRead } from '../api/auth';
 import { getJwt } from '../api/client';
@@ -36,6 +37,7 @@ type EventSubscription = { remove(): void };
 import type { AppNotification } from '../types';
 
 const NOTIFIED_IDS_KEY = 'notified_notification_ids';
+const CASH_SOUND_KEY = 'cash_sound_enabled';
 
 /**
  * Native push (FCM token + system popups) only exists in development /
@@ -85,6 +87,9 @@ interface NotifContextType {
   register: () => Promise<void>;
   refresh: () => Promise<void>;
   markAllRead: () => Promise<void>;
+  cashSound: boolean;
+  setCashSound: (v: boolean) => Promise<void>;
+  previewCashSound: () => void;
 }
 
 const NotifContext = createContext<NotifContextType | null>(null);
@@ -93,8 +98,42 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
+  const [cashSound, setCashSoundState] = useState(true);
   const seenNotifIds = useRef<Set<number>>(new Set());
   const loadedRef = useRef(false);
+  const cashSoundRef = useRef(true);
+
+  // Cash-register cha-ching for new orders
+  const cashPlayer = useAudioPlayer(require('../../assets/sounds/cash-register.ogg'));
+
+  const playCash = useCallback(() => {
+    if (!cashSoundRef.current) return;
+    try {
+      cashPlayer.seekTo(0);
+      cashPlayer.play();
+    } catch {}
+  }, [cashPlayer]);
+
+  const setCashSound = useCallback(async (v: boolean) => {
+    cashSoundRef.current = v;
+    setCashSoundState(v);
+    try {
+      await SecureStore.setItemAsync(CASH_SOUND_KEY, v ? '1' : '0');
+    } catch {}
+    if (v) {
+      try {
+        cashPlayer.seekTo(0);
+        cashPlayer.play();
+      } catch {}
+    }
+  }, [cashPlayer]);
+
+  const previewCashSound = useCallback(() => {
+    try {
+      cashPlayer.seekTo(0);
+      cashPlayer.play();
+    } catch {}
+  }, [cashPlayer]);
 
   const persistSeenIds = useCallback(async (ids: Set<number>) => {
     try {
@@ -108,6 +147,11 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const arr: number[] = JSON.parse(raw);
         seenNotifIds.current = new Set(arr);
+      }
+      const snd = await SecureStore.getItemAsync(CASH_SOUND_KEY);
+      if (snd === '0') {
+        cashSoundRef.current = false;
+        setCashSoundState(false);
       }
     } catch {}
     loadedRef.current = true;
@@ -167,6 +211,7 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
         if (n.id && !seenNotifIds.current.has(n.id)) {
           seenNotifIds.current.add(n.id);
           changed = true;
+          if (n.type === 'new_order') playCash();
           if (PUSH_NATIVE) {
             try {
               const N = await native();
@@ -188,7 +233,7 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
       if (changed) persistSeenIds(seenNotifIds.current);
       setNotifications(data);
     } catch {}
-  }, [user]);
+  }, [user, playCash]);
 
   const markAllRead = useCallback(async () => {
     if (!user) return;
@@ -264,6 +309,7 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
           seenNotifIds.current.add(nid);
           persistSeenIds(seenNotifIds.current);
         }
+        if (data?.type === 'new_order') playCash();
         if (data?.type) {
           setNotifications((prev) => [
             {
@@ -317,7 +363,7 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <NotifContext.Provider value={{ notifications, unreadCount, register, refresh, markAllRead }}>
+    <NotifContext.Provider value={{ notifications, unreadCount, register, refresh, markAllRead, cashSound, setCashSound, previewCashSound }}>
       {children}
     </NotifContext.Provider>
   );
