@@ -144,7 +144,7 @@ export function DashboardScreen({ navigation }: any) {
     >
       <ScreenHeader
         title={`${greeting()}، ${user?.name?.split(' ')[0] || t('settings.owner')}`}
-        subtitle={new Date().toLocaleDateString(dateTag, { weekday: 'long', day: 'numeric', month: 'long' })}
+        subtitle={`${new Date().toLocaleDateString(dateTag, { weekday: 'long', day: 'numeric', month: 'long' })}${user?.email ? ` • ${user.email}` : ''}`}
         onNotificationPress={() => navigation.navigate('NotificationsTab')}
       />
 

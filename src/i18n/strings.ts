@@ -71,6 +71,8 @@ const ar = {
   'detail.updateFailed': 'فشل تحديث حالة الطلب',
   'detail.stockLeft': 'المتبقي في المخزون',
   'detail.outOfStock': 'نفد المخزون',
+  'detail.date': 'تاريخ الطلب',
+  'detail.notes': 'ملاحظات',
 
   // Tracking
   'tracking.title': 'تتبع الشحنات',
@@ -226,6 +228,8 @@ const fr: Strings = {
   'detail.updateFailed': 'Échec de la mise à jour',
   'detail.stockLeft': 'Stock restant',
   'detail.outOfStock': 'Rupture de stock',
+  'detail.date': 'Date',
+  'detail.notes': 'Notes',
 
   'tracking.title': 'Suivi colis',
   'tracking.searchHint': 'N° de suivi, client…',
@@ -373,6 +377,8 @@ const en: Strings = {
   'detail.updateFailed': 'Failed to update order',
   'detail.stockLeft': 'Left in stock',
   'detail.outOfStock': 'Out of stock',
+  'detail.date': 'Order date',
+  'detail.notes': 'Notes',
 
   'tracking.title': 'Parcel tracking',
   'tracking.searchHint': 'Tracking #, customer…',

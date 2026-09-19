@@ -126,11 +126,70 @@ export function OrderDetailScreen({ navigation, route }: any) {
         </View>
         <View style={styles.statusTexts}>
           <Text style={styles.statusText}>{getStatusLabel(order.status)}</Text>
-          <Text style={[styles.statusSub, TYPE.tabularNumbers]}>{t('orders.title')} #{order.id}</Text>
+          <Text style={[styles.statusSub, TYPE.tabularNumbers]}>{t('orders.title')} #{order.id} • {formatDate(order.created_at)}</Text>
         </View>
         {order.store_name ? (
           <View style={styles.storeGlassBadge}>
             <Text style={styles.storeBadgeText}>{order.store_name}</Text>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Source Card */}
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={styles.cardHeader}>
+          <Ionicons name="information-circle-outline" size={14} color={colors.textMuted} />
+          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.orderSource')}</Text>
+        </View>
+        <View style={styles.infoItem}>
+          <View style={[styles.iconSm, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="calendar-outline" size={13} color={colors.primary} />
+          </View>
+          <Text style={[styles.infoText, TYPE.tabularNumbers, { color: colors.text }]}>{t('detail.date')}: {formatDate(order.created_at)}</Text>
+        </View>
+        {order.order_source_label && (
+          <View style={styles.infoItem}>
+            <View style={[styles.iconSm, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={order.order_source === 'ai_customer' ? 'hardware-chip-outline' : 'create-outline'} size={13} color={colors.primary} />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>{order.order_source_label}</Text>
+          </View>
+        )}
+        {order.source_platform_label && (
+          <View style={styles.infoItem}>
+            <View style={[styles.iconSm, { backgroundColor: colors.infoLight }]}>
+              <Ionicons
+                name={order.source_platform === 'telegram' ? 'paper-plane-outline' : order.source_platform === 'messenger' ? 'chatbubble-outline' : 'globe-outline'}
+                size={13} color={colors.info}
+              />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>{order.source_platform_label}</Text>
+          </View>
+        )}
+        {order.delivery_type && (
+          <View style={styles.infoItem}>
+            <View style={[styles.iconSm, { backgroundColor: colors.warningLight }]}>
+              <Ionicons name={order.delivery_type === 'desk' ? 'business-outline' : 'home-outline'} size={13} color={colors.warning} />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>
+              {order.delivery_type === 'desk' ? t('detail.deskDelivery') : t('detail.homeDelivery')}
+            </Text>
+          </View>
+        )}
+        {order.tracking_number && (
+          <View style={styles.infoItem}>
+            <View style={[styles.iconSm, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="cube-outline" size={13} color={colors.success} />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>{t('detail.trackingNumber')}: {order.tracking_number}</Text>
+          </View>
+        )}
+        {order.notes ? (
+          <View style={styles.infoItem}>
+            <View style={[styles.iconSm, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="document-text-outline" size={13} color={colors.primary} />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>{t('detail.notes')}: {order.notes}</Text>
           </View>
         ) : null}
       </View>
@@ -186,51 +245,6 @@ export function OrderDetailScreen({ navigation, route }: any) {
           <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('detail.total')}</Text>
           <Text style={[styles.price, TYPE.tabularNumbers, { color: colors.text }]}>{formatCurrency(order.total_price, order.currency)}</Text>
         </View>
-      </View>
-
-      {/* Source Card */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.cardHeader}>
-          <Ionicons name="information-circle-outline" size={14} color={colors.textMuted} />
-          <Text style={[styles.cardTitle, { color: colors.textMuted }]}>{t('detail.orderSource')}</Text>
-        </View>
-        {order.order_source_label && (
-          <View style={styles.infoItem}>
-            <View style={[styles.iconSm, { backgroundColor: colors.primaryLight }]}>
-              <Ionicons name={order.order_source === 'ai_customer' ? 'hardware-chip-outline' : 'create-outline'} size={13} color={colors.primary} />
-            </View>
-            <Text style={[styles.infoText, { color: colors.text }]}>{order.order_source_label}</Text>
-          </View>
-        )}
-        {order.source_platform_label && (
-          <View style={styles.infoItem}>
-            <View style={[styles.iconSm, { backgroundColor: colors.infoLight }]}>
-              <Ionicons
-                name={order.source_platform === 'telegram' ? 'paper-plane-outline' : order.source_platform === 'messenger' ? 'chatbubble-outline' : 'globe-outline'}
-                size={13} color={colors.info}
-              />
-            </View>
-            <Text style={[styles.infoText, { color: colors.text }]}>{order.source_platform_label}</Text>
-          </View>
-        )}
-        {order.delivery_type && (
-          <View style={styles.infoItem}>
-            <View style={[styles.iconSm, { backgroundColor: colors.warningLight }]}>
-              <Ionicons name={order.delivery_type === 'desk' ? 'business-outline' : 'home-outline'} size={13} color={colors.warning} />
-            </View>
-            <Text style={[styles.infoText, { color: colors.text }]}>
-              {order.delivery_type === 'desk' ? t('detail.deskDelivery') : t('detail.homeDelivery')}
-            </Text>
-          </View>
-        )}
-        {order.tracking_number && (
-          <View style={styles.infoItem}>
-            <View style={[styles.iconSm, { backgroundColor: colors.successLight }]}>
-              <Ionicons name="cube-outline" size={13} color={colors.success} />
-            </View>
-            <Text style={[styles.infoText, { color: colors.text }]}>{t('detail.trackingNumber')}: {order.tracking_number}</Text>
-          </View>
-        )}
       </View>
 
       {/* Timeline */}

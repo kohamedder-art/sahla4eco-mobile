@@ -209,19 +209,15 @@ export function OrdersScreen({ navigation, route }: any) {
             }}
           />
         )}
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={FILTERS}
-          keyExtractor={(f) => f}
-          contentContainerStyle={styles.filterList}
-            renderItem={({ item: f }) => {
-              const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
-              const active = activeFilter === f;
-              const fg = f === 'all' ? colors.primary : getStatusColor(f);
-              return (
+        <View style={styles.statusGrid}>
+          {FILTERS.map((f) => {
+            const count = f === 'all' ? orders.length : orders.filter(o => o.status === f).length;
+            const active = activeFilter === f;
+            const fg = f === 'all' ? colors.primary : getStatusColor(f);
+            return (
               <TouchableOpacity
-                style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, active && { backgroundColor: fg + '14', borderColor: fg + '50' }]}
+                key={f}
+                style={[styles.chip, styles.statusChip, { backgroundColor: colors.card, borderColor: colors.border }, active && { backgroundColor: fg + '14', borderColor: fg + '50' }]}
                 onPress={() => handleFilter(f)}
                 activeOpacity={0.8}
               >
@@ -233,9 +229,9 @@ export function OrdersScreen({ navigation, route }: any) {
                   <Text style={[styles.chipCountText, TYPE.tabularNumbers, { color: active ? fg : colors.textMuted }]}>{count}</Text>
                 )}
               </TouchableOpacity>
-              );
-            }}
-        />
+            );
+          })}
+        </View>
       </View>
 
       <FlatList
@@ -348,6 +344,8 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, paddingVertical: 0, fontSize: FONT.md, fontWeight: '500' },
   filterList: { paddingHorizontal: 16, gap: 8, paddingTop: 8 },
+  statusGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
+  statusChip: { flexGrow: 1, flexBasis: '30%', justifyContent: 'center' },
   storeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, maxWidth: 170,
